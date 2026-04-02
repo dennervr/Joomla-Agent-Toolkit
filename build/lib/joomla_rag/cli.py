@@ -13,25 +13,43 @@ os.environ["huggingface_hub_VERBOSITY"] = "error"
 from . import ingest
 from . import search
 from . import inspect
+from . import api
 
-def setup():
-    """Setup the skill by copying SKILL.md to opencode skills directory and creating data directory."""
-    config_dir = Path.home() / ".config" / "opencode" / "skills" / "joomla-docs"
+def setup(dev=False):
+    """Setup the skill by copying or symlinking SKILL.md to opencode skills directory and creating data directory."""
+    config_dir = Path.home() / ".config" / "opencode" / "skills" / "joomla-toolkit"
     data_dir = Path.home() / ".local" / "share" / "joomla-rag"
     
     # Create directories
     config_dir.mkdir(parents=True, exist_ok=True)
     data_dir.mkdir(parents=True, exist_ok=True)
     
-    # Copy SKILL.md
-    skill_md_src = Path(__file__).parent / "data" / "SKILL.md"
     skill_md_dst = config_dir / "SKILL.md"
-    if skill_md_src.exists():
-        shutil.copy(skill_md_src, skill_md_dst)
-        print(f"Copied SKILL.md to {skill_md_dst}")
+    
+    if dev:
+        # Development mode: Create a symlink to the local SKILL.md so changes are instant
+        skill_md_src = Path.cwd() / "src" / "joomla_rag" / "data" / "SKILL.md"
+        if not skill_md_src.exists():
+            print(f"Error: Local SKILL.md not found at {skill_md_src}", file=sys.stderr)
+            sys.exit(1)
+            
+        if skill_md_dst.exists() or skill_md_dst.is_symlink():
+            skill_md_dst.unlink()
+            
+        os.symlink(skill_md_src, skill_md_dst)
+        print(f"Created symlink: {skill_md_dst} -> {skill_md_src}")
+        print("Development mode active! Any changes to SKILL.md will instantly reflect in OpenCode.")
     else:
-        print("SKILL.md not found in package data", file=sys.stderr)
-        sys.exit(1)
+        # Production mode: Copy from the installed package
+        skill_md_src = Path(__file__).parent / "data" / "SKILL.md"
+        if skill_md_src.exists():
+            if skill_md_dst.exists() or skill_md_dst.is_symlink():
+                skill_md_dst.unlink()
+            shutil.copy(skill_md_src, skill_md_dst)
+            print(f"Copied SKILL.md to {skill_md_dst}")
+        else:
+            print("SKILL.md not found in package data", file=sys.stderr)
+            sys.exit(1)
     
     print(f"Created data directory at {data_dir}")
     print("Setup complete.")
@@ -41,7 +59,8 @@ def main():
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
     
     # Setup command
-    subparsers.add_parser("setup", help="Setup the skill")
+    setup_parser = subparsers.add_parser("setup", help="Setup the skill")
+    setup_parser.add_argument("--dev", action="store_true", help="Development mode: symlink SKILL.md instead of copying")
     
     # Ingest command
     ingest_parser = subparsers.add_parser("ingest", help="Ingest documentation")
@@ -56,15 +75,41 @@ def main():
     inspect_parser = subparsers.add_parser("inspect", help="Inspect Joomla environment")
     inspect_parser.add_argument("path", type=str, nargs='?', default=".", help="Path to Joomla root directory")
     
+    # API command
+    api_parser = subparsers.add_parser("api", help="API commands")
+    api_subparsers = api_parser.add_subparsers(dest="api_command")
+    
+    # Login subcommand
+    login_parser = api_subparsers.add_parser("login", help="Login to Joomla API")
+    login_parser.add_argument("url", help="Joomla site URL")
+    login_parser.add_argument("token", help="Super User API Token")
+    
+    # Articles subcommand
+    articles_parser = api_subparsers.add_parser("articles", help="Manage articles")
+    articles_parser.add_argument("action", choices=["list", "get", "create", "delete"], help="Action to perform")
+    articles_parser.add_argument("--id", type=int, help="Article ID for get/delete")
+    articles_parser.add_argument("--title", help="Title for create")
+    articles_parser.add_argument("--text", help="Text for create")
+    
     args = parser.parse_args()
     
     if args.command == "setup":
-        setup()
+        setup(dev=args.dev)
     elif args.command == "ingest":
         ingest.ingest_docs(args.docs_path)
     elif args.command == "search":
         search.search_docs(args.query, args.k)
     elif args.command == "inspect":
         inspect.inspect_env(args.path)
+    elif args.command == "api":
+        if args.api_command == "login":
+            api.api_login(args.url, args.token)
+        elif args.api_command == "articles":
+            api.manage_articles(args.action, id=args.id, title=args.title, text=args.text)
+        else:
+            api_parser.print_help()
     else:
         parser.print_help()
+
+if __name__ == "__main__":
+    main()

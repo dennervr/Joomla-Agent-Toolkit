@@ -14,6 +14,7 @@ from . import ingest
 from . import search
 from . import inspect
 from . import api
+from . import scaffold
 
 def setup(dev=False):
     """Setup the skill by copying or symlinking SKILL.md to opencode skills directory and creating data directory."""
@@ -91,6 +92,15 @@ def main():
     articles_parser.add_argument("--title", help="Title for create")
     articles_parser.add_argument("--text", help="Text for create")
     
+    # Scaffold command
+    scaffold_parser = subparsers.add_parser("scaffold", help="Scaffold Joomla components")
+    scaffold_subparsers = scaffold_parser.add_subparsers(dest="scaffold_command")
+    
+    # Component subcommand
+    component_parser = scaffold_subparsers.add_parser("component", help="Scaffold a component")
+    component_parser.add_argument("name", type=str, help="Component name")
+    component_parser.add_argument("--path", type=str, default=".", help="Path to Joomla root")
+    
     args = parser.parse_args()
     
     if args.command == "setup":
@@ -108,6 +118,11 @@ def main():
             api.manage_articles(args.action, id=args.id, title=args.title, text=args.text)
         else:
             api_parser.print_help()
+    elif args.command == "scaffold":
+        if args.scaffold_command == "component":
+            scaffold.scaffold_component(args.name, args.path)
+        else:
+            scaffold_parser.print_help()
     else:
         parser.print_help()
 

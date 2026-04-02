@@ -40,6 +40,12 @@ After successful login, you can manage articles using these commands:
 - `joomla-rag api articles create --title "My Article" --text "<p>Content</p>"`
 - `joomla-rag api articles delete --id <id>`
 
+### 4. Scaffolding Extensions (`joomla-rag scaffold`)
+To save tokens and time when creating extensions from scratch, you MUST use the built-in generator. This creates the entire baseline folder structure, `provider.php` (Joomla 4/5 DI), XML manifests, and entry points instantly.
+```bash
+joomla-rag scaffold component com_myextension
+```
+After scaffolding, you only need to edit the specific business logic or templates.
 ### Instructions for the LLM:
 1. When receiving the text response from the script, analyze from which `FILE` (`Source`) and `TOPIC` the answer came from.
 2. Synthesize the information into a conversational and cohesive response for the user.
