@@ -1,0 +1,28 @@
+# Joomla Agent Toolkit - Development Roadmap
+
+This document outlines the planned features to expand the `joomla-rag` CLI from a documentation search tool into a complete toolkit for AI agents to autonomously manage and develop Joomla websites.
+
+## 1. Environment Introspection (`joomla-rag inspect`)
+**Goal:** Allow the AI agent to quickly understand the local Joomla project without manually exploring folders.
+- Parse `configuration.php` to extract Joomla version, database prefix, and critical paths.
+- Scan `/components`, `/modules`, and `/plugins` directories.
+- Return a clean JSON summary of installed extensions and environment variables.
+
+## 2. Content and Configuration Management (`joomla-rag db` / `joomla-rag api`)
+**Goal:** Empower the AI to read and modify Joomla data (Articles, Modules, Menus, etc.) directly.
+- **Approach A (Direct Database):** Parse credentials from `configuration.php` to securely query the database (e.g., `#__content`, `#__modules`). 
+  - *Commands:* `joomla-rag db list-articles`, `joomla-rag db get-module <id>`
+- **Approach B (REST API):** Use Joomla 4/5 Web Services for standardized interactions.
+  - *Commands:* `joomla-rag api articles list`
+
+## 3. Intelligent Scaffolding (`joomla-rag scaffold`)
+**Goal:** Save AI tokens and execution time by generating boilerplate code instantly.
+- Generate complete folder structures and mandatory files (XML manifests, entrypoints, language files).
+- Support standard extension types.
+  - *Commands:* `joomla-rag scaffold module mod_example`, `joomla-rag scaffold component com_example`
+
+## 4. Extension Validation (`joomla-rag validate`)
+**Goal:** Ensure generated extensions are installable and follow Joomla standards before the AI finishes its task.
+- Parse the `.xml` manifest file to check for required tags.
+- Verify that all files and folders referenced in the manifest actually exist in the file system.
+- *Command:* `joomla-rag validate <path-to-extension>`
