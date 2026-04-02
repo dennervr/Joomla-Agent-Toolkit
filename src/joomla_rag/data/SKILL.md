@@ -34,6 +34,12 @@ If you receive an `[ERROR] API Token missing`, you MUST ask the user for the Sit
 ```bash
 joomla-rag api login <url> <token>
 ```
+**CRITICAL: Connection Refused / Port Issues**
+If you receive `[ERROR] Connection failed: <urlopen error [Errno 111] Connection refused>`, it means the URL you saved is wrong or the Docker container is running on a different port (e.g., `8080`).
+1. Proactively use bash to inspect `docker-compose.yml` or run `docker ps` to figure out the correct mapped port.
+2. If you find the port (e.g., 8080), run the login command again with the correct URL: `joomla-rag api login http://localhost:8080 <token>`.
+3. If you cannot find the port, ask the user for the exact local URL and port.
+
 After successful login, you can manage articles using these commands:
 - `joomla-rag api articles list`
 - `joomla-rag api articles get --id <id>`
