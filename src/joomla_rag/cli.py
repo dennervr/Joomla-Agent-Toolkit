@@ -13,6 +13,7 @@ os.environ["huggingface_hub_VERBOSITY"] = "error"
 from . import ingest
 from . import search
 from . import inspect
+from . import api
 
 def setup(dev=False):
     """Setup the skill by copying or symlinking SKILL.md to opencode skills directory and creating data directory."""
@@ -74,6 +75,22 @@ def main():
     inspect_parser = subparsers.add_parser("inspect", help="Inspect Joomla environment")
     inspect_parser.add_argument("path", type=str, nargs='?', default=".", help="Path to Joomla root directory")
     
+    # API command
+    api_parser = subparsers.add_parser("api", help="API commands")
+    api_subparsers = api_parser.add_subparsers(dest="api_command")
+    
+    # Login subcommand
+    login_parser = api_subparsers.add_parser("login", help="Login to Joomla API")
+    login_parser.add_argument("url", help="Joomla site URL")
+    login_parser.add_argument("token", help="Super User API Token")
+    
+    # Articles subcommand
+    articles_parser = api_subparsers.add_parser("articles", help="Manage articles")
+    articles_parser.add_argument("action", choices=["list", "get", "create", "delete"], help="Action to perform")
+    articles_parser.add_argument("--id", type=int, help="Article ID for get/delete")
+    articles_parser.add_argument("--title", help="Title for create")
+    articles_parser.add_argument("--text", help="Text for create")
+    
     args = parser.parse_args()
     
     if args.command == "setup":
@@ -84,6 +101,13 @@ def main():
         search.search_docs(args.query, args.k)
     elif args.command == "inspect":
         inspect.inspect_env(args.path)
+    elif args.command == "api":
+        if args.api_command == "login":
+            api.api_login(args.url, args.token)
+        elif args.api_command == "articles":
+            api.manage_articles(args.action, id=args.id, title=args.title, text=args.text)
+        else:
+            api_parser.print_help()
     else:
         parser.print_help()
 

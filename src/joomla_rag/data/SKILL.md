@@ -24,6 +24,22 @@ joomla-rag search "How to create a custom component MVC"
 ```
 The search will return the 5 most relevant snippets (`chunks`) from the official manual.
 
+### 3. Interacting with Joomla Content via API (`joomla-rag api`)
+To read or write articles directly, you must use the Joomla REST API. 
+First, check if you have access by running:
+```bash
+joomla-rag api articles list
+```
+If you receive an `[ERROR] API Token missing`, you MUST ask the user for the Site URL and a Super User API Token. Once provided, run:
+```bash
+joomla-rag api login <url> <token>
+```
+After successful login, you can manage articles using these commands:
+- `joomla-rag api articles list`
+- `joomla-rag api articles get --id <id>`
+- `joomla-rag api articles create --title "My Article" --text "<p>Content</p>"`
+- `joomla-rag api articles delete --id <id>`
+
 ### Instructions for the LLM:
 1. When receiving the text response from the script, analyze from which `FILE` (`Source`) and `TOPIC` the answer came from.
 2. Synthesize the information into a conversational and cohesive response for the user.
