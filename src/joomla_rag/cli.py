@@ -4,7 +4,7 @@ from pathlib import Path
 import shutil
 import os
 
-# Suprimir barras de loading
+# Suppress loading bars
 os.environ["TQDM_DISABLE"] = "1"
 os.environ["TRANSFORMERS_VERBOSITY"] = "error"
 os.environ["HF_HUB_DISABLE_WARNINGS"] = "1"

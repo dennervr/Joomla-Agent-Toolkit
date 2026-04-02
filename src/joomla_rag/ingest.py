@@ -16,13 +16,13 @@ def ingest_docs(docs_path: str = None):
     chroma_persist_dir = package_dir / "data" / "chroma_db"
     
     if not docs_dir.exists():
-        print(f"Erro: O diretório {docs_dir} não existe.")
+        print(f"Error: Directory {docs_dir} does not exist.")
         return
         
-    print(f"Lendo arquivos markdown de: {docs_dir}")
+    print(f"Reading markdown files from: {docs_dir}")
     loader = DirectoryLoader(str(docs_dir), glob="**/*.md", loader_cls=TextLoader)
     documents = loader.load()
-    print(f"Carregados {len(documents)} documentos.")
+    print(f"Loaded {len(documents)} documents.")
     
     headers_to_split_on = [("#", "Header 1"), ("##", "Header 2"), ("###", "Header 3")]
     markdown_splitter = MarkdownHeaderTextSplitter(headers_to_split_on=headers_to_split_on)
@@ -34,7 +34,7 @@ def ingest_docs(docs_path: str = None):
         for split in md_splits:
             abs_path = Path(doc.metadata.get("source", ""))
             try:
-                # Salva o caminho relativo para que seja portátil entre computadores
+                # Save relative path to make it portable across machines
                 rel_path = abs_path.relative_to(package_dir)
                 split.metadata["source"] = str(rel_path)
             except ValueError:
@@ -43,16 +43,16 @@ def ingest_docs(docs_path: str = None):
         final_splits = text_splitter.split_documents(md_splits)
         all_splits.extend(final_splits)
         
-    print(f"Criados {len(all_splits)} chunks. Inicializando modelo de embeddings...")
+    print(f"Created {len(all_splits)} chunks. Initializing embedding model...")
     embeddings = HuggingFaceEmbeddings(
         model_name="all-MiniLM-L6-v2",
-        model_kwargs={'local_files_only': False} # Na ingestão inicial precisamos baixar da web
+        model_kwargs={'local_files_only': False} # Initial ingestion needs to download from web
     )
     
-    print(f"Criando Vector DB empacotado em {chroma_persist_dir}...")
+    print(f"Creating packaged Vector DB in {chroma_persist_dir}...")
     vectorstore = Chroma.from_documents(
         documents=all_splits,
         embedding=embeddings,
         persist_directory=str(chroma_persist_dir)
     )
-    print("Ingestão concluída. O banco de dados agora faz parte do pacote Python!")
+    print("Ingestion complete. The database is now part of the Python package!")
