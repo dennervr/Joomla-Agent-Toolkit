@@ -15,7 +15,7 @@ from . import search
 
 def setup():
     """Setup the skill by copying SKILL.md to opencode skills directory and creating data directory."""
-    config_dir = Path.home() / ".config" / "opencode" / "skills"
+    config_dir = Path.home() / ".config" / "opencode" / "skills" / "joomla-docs"
     data_dir = Path.home() / ".local" / "share" / "joomla-rag"
     
     # Create directories
@@ -24,7 +24,7 @@ def setup():
     
     # Copy SKILL.md
     skill_md_src = Path(__file__).parent / "data" / "SKILL.md"
-    skill_md_dst = config_dir / "joomla-docs.md"  # Assuming the name
+    skill_md_dst = config_dir / "SKILL.md"
     if skill_md_src.exists():
         shutil.copy(skill_md_src, skill_md_dst)
         print(f"Copied SKILL.md to {skill_md_dst}")
