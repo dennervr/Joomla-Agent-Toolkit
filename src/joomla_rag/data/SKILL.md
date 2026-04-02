@@ -10,12 +10,19 @@ You must not guess or assume the behavior of Joomla API functions or classes if 
 ## How to Use
 To find answers in the Joomla documentation (the data has already been parsed and vectorized), use the bash tool (your terminal) to run the `joomla-rag search` command and pass the subject or question.
 
-**Mandatory command:**
+**Search command:**
 ```bash
 joomla-rag search "How to create a custom component MVC"
 ```
 
 The search will return the 5 most relevant snippets (`chunks`) from the official manual.
+
+**Inspect command:**
+If you need to understand the user's local Joomla environment (e.g. database prefix, installed extensions, or Joomla version), you can run:
+```bash
+joomla-rag inspect
+```
+This returns a JSON object summarizing the local Joomla configuration and installed components/modules/plugins.
 
 ### Instructions for the LLM:
 1. When receiving the text response from the script, analyze from which `FILE` (`Source`) and `TOPIC` the answer came from.
