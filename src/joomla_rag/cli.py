@@ -16,7 +16,7 @@ from . import inspect
 
 def setup(dev=False):
     """Setup the skill by copying or symlinking SKILL.md to opencode skills directory and creating data directory."""
-    config_dir = Path.home() / ".config" / "opencode" / "skills" / "joomla-docs"
+    config_dir = Path.home() / ".config" / "opencode" / "skills" / "joomla-toolkit"
     data_dir = Path.home() / ".local" / "share" / "joomla-rag"
     
     # Create directories

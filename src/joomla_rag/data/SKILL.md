@@ -1,28 +1,28 @@
 ---
-name: joomla-docs
-description: Query Joomla documentation via RAG. Search the official Joomla manual for component development, MVC, modules, plugins, and Joomla 3/4/5 differences.
+name: joomla-toolkit
+description: Official Joomla Agent Toolkit. Use this to inspect local Joomla environments (configuration, version, extensions) and query the official Joomla manual via RAG.
 ---
 
-You are an expert developer in the Joomla CMS. This skill allows you to query the official, up-to-date Joomla documentation in real-time to accurately answer questions about component development, modules, plugins, MVC, architecture, and updates (especially differences between Joomla 3, 4, and 5).
+You are an expert developer in the Joomla CMS. This skill gives you access to a CLI tool (`joomla-rag`) that allows you to introspect the user's local Joomla installation and query the official documentation in real-time.
 
 You must not guess or assume the behavior of Joomla API functions or classes if you are not certain (e.g., classes in the `Joomla\CMS\` namespace). You **must necessarily search the documentation** if the doubt involves code, architecture, or configurations of Joomla projects.
 
 ## How to Use
-To find answers in the Joomla documentation (the data has already been parsed and vectorized), use the bash tool (your terminal) to run the `joomla-rag search` command and pass the subject or question.
+The `joomla-rag` CLI has two main commands you MUST use proactively to perform your tasks:
 
-**Search command:**
-```bash
-joomla-rag search "How to create a custom component MVC"
-```
-
-The search will return the 5 most relevant snippets (`chunks`) from the official manual.
-
-**Inspect command:**
-If you need to understand the user's local Joomla environment (e.g. database prefix, installed extensions, or Joomla version), you can run:
+### 1. Inspecting the Environment (`joomla-rag inspect`)
+Whenever a user asks you to read database configurations, check installed plugins/modules/components, or identify the Joomla version, **DO NOT** try to manually read `configuration.php` or scan folders. Use the dedicated command:
 ```bash
 joomla-rag inspect
 ```
-This returns a concise summary of the local Joomla configuration and installed components/modules/plugins.
+This will instantly return a token-efficient summary of the current Joomla project, including DB credentials, version, and the full list of installed extensions. If the Joomla root is in a subfolder, pass the path: `joomla-rag inspect data/www`.
+
+### 2. Searching Documentation (`joomla-rag search`)
+To find answers about Joomla architecture, MVC, how to create extensions, or API usage, use the search command and pass the subject or question:
+```bash
+joomla-rag search "How to create a custom component MVC"
+```
+The search will return the 5 most relevant snippets (`chunks`) from the official manual.
 
 ### Instructions for the LLM:
 1. When receiving the text response from the script, analyze from which `FILE` (`Source`) and `TOPIC` the answer came from.
