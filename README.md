@@ -1,35 +1,35 @@
 # Joomla Agent Toolkit (ragJoomla)
 
-O Joomla Agent Toolkit é uma suíte de ferramentas projetada para capacitar agentes de IA (como OpenCode e Claude) a desenvolver sites Joomla completos de forma autônoma. 
+The Joomla Agent Toolkit is a suite of tools designed to empower AI agents (such as OpenCode and Claude) to develop complete Joomla websites autonomously.
 
-Nosso objetivo é fornecer as "skills" necessárias para que a IA possa atuar como um desenvolvedor Full-Stack Joomla, sendo capaz de:
-- Criar e gerenciar Artigos, Categorias e Menus.
-- Desenvolver Módulos, Componentes e Plugins do zero.
-- Compreender e aplicar a arquitetura MVC do Joomla (versões 3, 4 e 5).
-- Integrar extensões e gerenciar o ecossistema do CMS.
+Our goal is to provide the necessary "skills" for the AI to act as a Full-Stack Joomla Developer, capable of:
+- Creating and managing Articles, Categories, and Menus.
+- Developing Modules, Components, and Plugins from scratch.
+- Understanding and applying the Joomla MVC architecture (versions 3, 4, and 5).
+- Integrating extensions and managing the CMS ecosystem.
 
-Atualmente, o projeto conta com um módulo inicial robusto de **RAG (Retrieval-Augmented Generation)**. Essa ferramenta permite aos agentes de IA consultarem a documentação oficial do Joomla em tempo real e de forma autônoma, garantindo que o código gerado siga as melhores práticas e os padrões mais recentes da plataforma.
+Currently, the project features a robust initial **RAG (Retrieval-Augmented Generation)** module. This tool allows AI agents to query the official Joomla documentation in real-time and autonomously, ensuring the generated code follows best practices and the latest platform standards.
 
-## Funcionalidades
+## Features
 
-- **Consulta Inteligente (RAG):** Banco de dados vetorial embutido com a documentação oficial do Joomla. A IA busca o contexto necessário de forma dinâmica para resolver problemas complexos.
-- **Integração Global:** Pode ser instalado globalmente no sistema e utilizado em qualquer projeto ou diretório local.
+- **Smart Querying (RAG):** Embedded vector database with official Joomla documentation. The AI dynamically fetches the necessary context to solve complex problems.
+- **Global Integration:** Can be installed globally on the system and used in any local project or directory.
 
-## Como Instalar
+## How to Install
 
 ```bash
-# Instala o CLI globalmente no seu sistema usando pipx
-pipx install git+https://github.com/seu-usuario/joomla-rag.git
+# Install the CLI globally on your system using pipx
+pipx install git+https://github.com/your-username/joomla-rag.git
 
-# Garante que a pasta do pipx esteja no seu PATH
+# Ensure the pipx folder is in your PATH
 pipx ensurepath
 
-# Injeta a Skill no seu ambiente (ex: OpenCode)
+# Inject the Skill into your environment (e.g., OpenCode)
 joomla-rag setup
 ```
 
-## Comandos Disponíveis (CLI)
+## Available Commands (CLI)
 
-- `joomla-rag setup`: Instala os arquivos de instrução (Skills) globalmente no ambiente do agente (ex: `~/.config/opencode/skills/`).
-- `joomla-rag search "query"`: Comando utilizado autonomamente pela IA para buscar conhecimentos específicos na documentação do Joomla.
-- `joomla-rag ingest [path]`: (Opcional) Comando administrativo para reprocessar a documentação e atualizar o banco de dados vetorial interno.
+- `joomla-rag setup`: Installs the instruction files (Skills) globally in the agent's environment (e.g., `~/.config/opencode/skills/`).
+- `joomla-rag search "query"`: Command used autonomously by the AI to search for specific knowledge in the Joomla documentation.
+- `joomla-rag ingest [path]`: (Optional) Administrative command to reprocess the documentation and update the internal vector database.

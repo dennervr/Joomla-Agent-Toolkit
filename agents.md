@@ -1,31 +1,31 @@
-# Configuração de Agentes e "Skills" (OpenCode / Anthropic)
+# Agent Configuration and "Skills" (OpenCode / Anthropic)
 
-Este projeto foi desenhado com uma arquitetura baseada em **Agent Skills**, com o objetivo de otimizar a janela de contexto de agentes de IA e fornecer as ferramentas necessárias para que operem como **Desenvolvedores Full-Stack Joomla**.
+This project is designed with an **Agent Skills** architecture, aiming to optimize the context window of AI agents and provide the necessary tools for them to operate as **Full-Stack Joomla Developers**.
 
-## A Visão do Joomla Agent Toolkit
+## The Joomla Agent Toolkit Vision
 
-Em vez de focar apenas na pesquisa de documentação (RAG), este projeto almeja fornecer um ecossistema completo de habilidades para que a IA consiga:
-- Criar e gerenciar Artigos, Categorias e Menus diretamente no banco de dados ou via API.
-- Scaffoldar e desenvolver Módulos, Componentes (MVC) e Plugins do zero.
-- Compreender as diferenças arquitetônicas entre Joomla 3, 4 e 5.
-- Empacotar extensões prontas para instalação.
+Instead of focusing solely on documentation search (RAG), this project aims to provide a complete ecosystem of skills so the AI can:
+- Create and manage Articles, Categories, and Menus directly in the database or via API.
+- Scaffold and develop Modules, Components (MVC), and Plugins from scratch.
+- Understand the architectural differences between Joomla 3, 4, and 5.
+- Package extensions ready for installation.
 
-## O Modelo "Agent Skills"
+## The "Agent Skills" Model
 
-No OpenCode e em agentes baseados na Anthropic (como Claude Desktop), manter servidores locais (como o Model Context Protocol - MCP) em execução contínua consome muitos recursos. A abordagem via "Agent Skill" é mais leve e eficiente:
-- Funciona como instruções dinâmicas injetadas via `.opencode/skills/` (ou `~/.config/opencode/skills/`).
-- Possui um frontmatter YAML com `name` e `description`.
-- O agente lê as instruções e ferramentas disponíveis **apenas** quando o usuário precisa trabalhar com o Joomla.
+In OpenCode and Anthropic-based agents (like Claude Desktop), keeping local servers running (like the Model Context Protocol - MCP) continuously consumes a lot of resources. The "Agent Skill" approach is lighter and more efficient:
+- Functions as dynamic instructions injected via `.opencode/skills/` (or `~/.config/opencode/skills/`).
+- Has a YAML frontmatter defining `name` and `description`.
+- The agent reads the instructions and available tools **only** when the user needs to work with Joomla.
 
-### Funcionamento Atual: O Módulo RAG para o Agente
+### Current Implementation: The RAG Module for the Agent
 
-A primeira "Skill" implementada é a de pesquisa de documentação inteligente (RAG):
+The first implemented "Skill" is the intelligent documentation search (RAG):
 
-1. **O Agente Recebe o Prompt:** O usuário solicita, por exemplo, "Como criar um componente MVC no Joomla 5?".
-2. **Ativação da Skill:** A IA detecta o contexto "Joomla" e carrega a skill `joomla-docs`.
-3. **Execução Autônoma:** O arquivo de skill instrui o agente a executar a ferramenta de CLI empacotada:
+1. **The Agent Receives the Prompt:** The user asks, for example, "How to create an MVC component in Joomla 5?".
+2. **Skill Activation:** The AI detects the "Joomla" context and loads the `joomla-docs` skill.
+3. **Autonomous Execution:** The skill file instructs the agent to execute the packaged CLI tool:
    ```bash
-   joomla-rag search "Como criar um componente MVC no Joomla 5"
+   joomla-rag search "How to create an MVC component in Joomla 5"
    ```
-4. **Extração Silenciosa e Offline:** O banco vetorial local (ChromaDB) é consultado e retorna instantaneamente os trechos mais relevantes da documentação oficial do Joomla, sem requerer chamadas de API externas e sem poluir o terminal com logs desnecessários.
-5. **Aprofundamento (Opcional):** A resposta da busca inclui os caminhos absolutos dos arquivos Markdown. Se o agente precisar de mais contexto, ele pode usar ferramentas de leitura para consultar o documento completo antes de gerar o código final.
+4. **Silent and Offline Extraction:** The local vector database (ChromaDB) is queried and instantly returns the most relevant snippets from the official Joomla documentation, without requiring external API calls and without polluting the terminal with unnecessary logs.
+5. **Deep Dive (Optional):** The search response includes the absolute paths of the Markdown files. If the agent needs more context, it can use reading tools to consult the full document before generating the final code.
