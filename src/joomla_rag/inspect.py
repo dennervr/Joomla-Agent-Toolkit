@@ -8,9 +8,8 @@ def inspect_env(target_path: str = "."):
     config_file = target / "configuration.php"
     
     if not config_file.exists():
-        result = {"error": "configuration.php not found. Not a Joomla root."}
-        print(json.dumps(result, indent=2))
-        return result
+        print("[ERROR] configuration.php not found. Not a Joomla root.")
+        return {"error": "not found"}
     
     # Parse configuration.php
     config_data = {}
@@ -25,9 +24,8 @@ def inspect_env(target_path: str = "."):
             if match:
                 config_data[var] = match.group(1)
     except Exception as e:
-        result = {"error": f"Failed to parse configuration.php: {str(e)}"}
-        print(json.dumps(result, indent=2))
-        return result
+        print(f"[ERROR] Failed to parse configuration.php: {str(e)}")
+        return {"error": "parse error"}
     
     # Detect Joomla version
     version_file = target / "administrator" / "manifests" / "files" / "joomla.xml"
@@ -67,11 +65,22 @@ def inspect_env(target_path: str = "."):
             except Exception as e:
                 pass  # Ignore errors
     
-    result = {
-        "config": config_data,
-        "version": version,
-        "extensions": extensions
-    }
+    # Format token-efficient output
+    output = []
+    output.append(f"[JOOMLA ENV] Version: {version or 'Unknown'}")
     
-    print(json.dumps(result, indent=2))
-    return result
+    if config_data:
+        c = config_data
+        output.append(f"[DB] {c.get('dbtype')} | Host: {c.get('host')} | User: {c.get('user')} | DB: {c.get('db')} | Prefix: {c.get('dbprefix')}")
+        output.append(f"[PATHS] Log: {c.get('log_path')} | Tmp: {c.get('tmp_path')}")
+        
+    output.append("[EXTENSIONS]")
+    for ext_type, items in extensions.items():
+        if items:
+            output.append(f"{ext_type.capitalize()}: {', '.join(items)}")
+        else:
+            output.append(f"{ext_type.capitalize()}: (None)")
+            
+    final_output = "\n".join(output)
+    print(final_output)
+    return { "config": config_data, "version": version, "extensions": extensions }

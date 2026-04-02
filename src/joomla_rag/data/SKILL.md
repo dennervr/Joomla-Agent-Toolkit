@@ -22,7 +22,7 @@ If you need to understand the user's local Joomla environment (e.g. database pre
 ```bash
 joomla-rag inspect
 ```
-This returns a JSON object summarizing the local Joomla configuration and installed components/modules/plugins.
+This returns a concise summary of the local Joomla configuration and installed components/modules/plugins.
 
 ### Instructions for the LLM:
 1. When receiving the text response from the script, analyze from which `FILE` (`Source`) and `TOPIC` the answer came from.

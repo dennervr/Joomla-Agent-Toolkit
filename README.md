@@ -32,5 +32,5 @@ joomla-rag setup
 
 - `joomla-rag setup`: Installs the instruction files (Skills) globally in the agent's environment (e.g., `~/.config/opencode/skills/`).
 - `joomla-rag search "query"`: Command used autonomously by the AI to search for specific knowledge in the Joomla documentation.
-- `joomla-rag inspect [path]`: Command used by the AI to introspect a local Joomla installation, returning database configs, version, and installed extensions as JSON.
+- `joomla-rag inspect [path]`: Command used by the AI to introspect a local Joomla installation, returning database configs, version, and installed extensions concisely.
 - `joomla-rag ingest [path]`: (Optional) Administrative command to reprocess the documentation and update the internal vector database.
