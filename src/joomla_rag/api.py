@@ -3,7 +3,7 @@ import urllib.request
 import json
 import sys
 
-CREDENTIALS_PATH = Path.home() / ".local" / "share" / "joomla-rag" / "credentials.json"
+CREDENTIALS_PATH = Path.cwd() / ".joomla-rag" / "credentials.json"
 
 def api_login(url: str, token: str):
     # Ensure url doesn't end with slash
