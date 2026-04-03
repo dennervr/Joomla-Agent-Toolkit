@@ -19,7 +19,7 @@ Currently, the project features a robust initial **RAG (Retrieval-Augmented Gene
 
 ```bash
 # Install the CLI globally on your system using pipx
-pipx install git+https://github.com/your-username/joomla-rag.git
+pipx install git+https://github.com/dennervr/Joomla-Agent-Toolkit.git
 
 # Ensure the pipx folder is in your PATH
 pipx ensurepath
