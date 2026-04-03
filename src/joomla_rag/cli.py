@@ -15,6 +15,7 @@ from . import search
 from . import inspect
 from . import api
 from . import scaffold
+from . import validate
 
 def setup(dev=False):
     """Setup the skill by copying or symlinking SKILL.md to opencode skills directory and creating data directory."""
@@ -91,6 +92,10 @@ def main():
     articles_parser.add_argument("--id", type=int, help="Article ID for get/delete")
     articles_parser.add_argument("--title", help="Title for create")
     articles_parser.add_argument("--text", help="Text for create")
+    articles_parser.add_argument("--search", type=str, help="Search keyword to filter articles")
+    articles_parser.add_argument("--limit", type=int, default=5, help="Max number of articles to return (default 5)")
+    articles_parser.add_argument("--category", type=int, help="Category ID to filter articles")
+    articles_parser.add_argument("--state", type=int, help="State to filter articles")
     
     # Scaffold command
     scaffold_parser = subparsers.add_parser("scaffold", help="Scaffold Joomla components")
@@ -100,6 +105,10 @@ def main():
     component_parser = scaffold_subparsers.add_parser("component", help="Scaffold a component")
     component_parser.add_argument("name", type=str, help="Component name")
     component_parser.add_argument("--path", type=str, default=".", help="Path to Joomla root")
+    
+    # Validate command
+    validate_parser = subparsers.add_parser("validate", help="Validate Joomla extension")
+    validate_parser.add_argument("path", type=str, help="Path to extension directory")
     
     args = parser.parse_args()
     
@@ -115,7 +124,7 @@ def main():
         if args.api_command == "login":
             api.api_login(args.url, args.token)
         elif args.api_command == "articles":
-            api.manage_articles(args.action, id=args.id, title=args.title, text=args.text)
+            api.manage_articles(args.action, id=args.id, title=args.title, text=args.text, search=args.search, limit=args.limit, category=args.category, state=args.state)
         else:
             api_parser.print_help()
     elif args.command == "scaffold":
@@ -123,6 +132,8 @@ def main():
             scaffold.scaffold_component(args.name, args.path)
         else:
             scaffold_parser.print_help()
+    elif args.command == "validate":
+        validate.validate_extension(args.path)
     else:
         parser.print_help()
 

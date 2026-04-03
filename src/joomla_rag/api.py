@@ -1,5 +1,6 @@
 from pathlib import Path
 import urllib.request
+import urllib.parse
 import json
 import sys
 
@@ -56,13 +57,25 @@ def api_request(endpoint: str, method: str = "GET", data: dict = None):
         print(f"[ERROR] Connection failed: {e}")
         return None
 
-def manage_articles(action: str, id: int = None, title: str = None, text: str = None):
+def manage_articles(action: str, id: int = None, title: str = None, text: str = None, search: str = None, limit: int = 5, category: int = None, state: int = None):
     if action == "list":
-        response = api_request("content/articles")
+        endpoint = "content/articles?page[limit]=" + str(limit) + "&fields[articles]=id,title,alias,state,catid"
+        if search:
+            endpoint += "&filter[search]=" + urllib.parse.quote(search)
+        if category is not None:
+            endpoint += f"&filter[catid]={category}"
+        if state is not None:
+            endpoint += f"&filter[state]={state}"
+        response = api_request(endpoint)
         if response and "data" in response:
+            print("ID  | State | Cat | Title (Alias)")
+            print("-" * 40)
             for article in response["data"]:
                 attrs = article["attributes"]
-                print(f"{article['id']}: {attrs.get('alias', '')} - {attrs['title']} ({'Published' if attrs['state'] == 1 else 'Unpublished'})")
+                state_str = {1: 'Pub', 0: 'Unpub', -2: 'Trash'}.get(attrs['state'], str(attrs['state']))
+                catid = article.get('relationships', {}).get('category', {}).get('data', {}).get('id', '')
+                title_alias = f"{attrs['title']} ({attrs.get('alias', '')})"
+                print(f"{article['id']:3} | {state_str:5} | {catid:3} | {title_alias}")
         else:
             print("No articles found or error.")
     elif action == "get":

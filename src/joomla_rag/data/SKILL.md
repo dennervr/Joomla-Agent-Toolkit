@@ -41,10 +41,12 @@ If you receive `[ERROR] Connection failed: <urlopen error [Errno 111] Connection
 3. If you cannot find the port, ask the user for the exact local URL and port.
 
 After successful login, you can manage articles using these commands:
-- `joomla-rag api articles list`
+- `joomla-rag api articles list [--search "keyword"] [--category <catid>] [--state <0|1|-2>] [--limit 5]`
 - `joomla-rag api articles get --id <id>`
 - `joomla-rag api articles create --title "My Article" --text "<p>Content</p>"`
 - `joomla-rag api articles delete --id <id>`
+
+**IMPORTANT:** Always use `--search`, `--category`, or `--limit` when listing articles to find what you need without wasting context tokens on hundreds of results. The output is a token-efficient compact table.
 
 ### 4. Scaffolding Extensions (`joomla-rag scaffold`)
 To save tokens and time when creating extensions from scratch, you MUST use the built-in generator. This creates the entire baseline folder structure, `provider.php` (Joomla 4/5 DI), XML manifests, and entry points instantly.
@@ -52,6 +54,14 @@ To save tokens and time when creating extensions from scratch, you MUST use the 
 joomla-rag scaffold component com_myextension
 ```
 After scaffolding, you only need to edit the specific business logic or templates.
+
+### 5. Validating Extensions (`joomla-rag validate`)
+Before concluding a task that involved creating or modifying a Joomla extension, ensure the manifest and files are valid:
+```bash
+joomla-rag validate <path-to-extension>
+```
+This ensures all required tags are present and all files referenced in `<files>` or `<media>` tags actually exist.
+
 ### Instructions for the LLM:
 1. When receiving the text response from the script, analyze from which `FILE` (`Source`) and `TOPIC` the answer came from.
 2. Synthesize the information into a conversational and cohesive response for the user.

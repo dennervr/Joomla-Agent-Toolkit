@@ -26,3 +26,8 @@ This document outlines the planned features to expand the `joomla-rag` CLI from 
 - Parse the `.xml` manifest file to check for required tags.
 - Verify that all files and folders referenced in the manifest actually exist in the file system.
 - *Command:* `joomla-rag validate <path-to-extension>`
+
+## 5. Smart Search Integration (`joomla-rag db smart-search`)
+**Goal:** Enable the AI to quickly find content using Joomla's Smart Search index (`com_finder`), since Joomla 4/5 does not expose a native REST API endpoint for it.
+- **Approach:** Parse credentials from `configuration.php` and directly query the `#__finder_links` and `#__finder_terms` tables to perform fast, token-efficient searches.
+- *Command:* `joomla-rag db smart-search "search term"`
