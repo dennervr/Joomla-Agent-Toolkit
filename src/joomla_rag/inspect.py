@@ -9,24 +9,32 @@ def inspect_env(target_path: str = "."):
     config_file = target / "configuration.php"
 
     if not config_file.exists():
-        print("[ERROR] configuration.php not found. Not a Joomla root.")
-        return {"error": "not found"}
+        # Check if it looks like a Joomla folder
+        has_admin = (target / "administrator").exists()
+        has_components = (target / "components").exists()
+        if has_admin or has_components:
+            print("Warning: configuration.php not found. This might be a fresh install or a Docker volume. Proceeding to inspect folders...")
+            config_data = {}
+        else:
+            print("[ERROR] Not a Joomla root.")
+            return {"error": "Not a Joomla root"}
 
     # Parse configuration.php
-    config_data = {}
-    try:
-        with open(config_file, "r", encoding="utf-8") as f:
-            content = f.read()
+    if config_file.exists():
+        config_data = {}
+        try:
+            with open(config_file, "r", encoding="utf-8") as f:
+                content = f.read()
 
-        # Extract variables using regex
-        variables = ["dbtype", "host", "user", "db", "dbprefix", "log_path", "tmp_path"]
-        for var in variables:
-            match = re.search(rf'public \${var}\s*=\s*[\'"]([^\'"]*)[\'"];', content)
-            if match:
-                config_data[var] = match.group(1)
-    except Exception as e:
-        print(f"[ERROR] Failed to parse configuration.php: {str(e)}")
-        return {"error": "parse error"}
+            # Extract variables using regex
+            variables = ["dbtype", "host", "user", "db", "dbprefix", "log_path", "tmp_path"]
+            for var in variables:
+                match = re.search(rf'public \${var}\s*=\s*[\'"]([^\'"]*)[\'"];', content)
+                if match:
+                    config_data[var] = match.group(1)
+        except Exception as e:
+            print(f"[ERROR] Failed to parse configuration.php: {str(e)}")
+            return {"error": "parse error"}
 
     # Detect Joomla version
     version_file = target / "administrator" / "manifests" / "files" / "joomla.xml"

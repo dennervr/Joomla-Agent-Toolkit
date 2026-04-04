@@ -163,7 +163,7 @@ def test_manage_menus_list_no_filters(mock_session_class, mock_cwd, temp_dir):
     mock_response.json.return_value = {"data": []}
     mock_session.get.return_value = mock_response
     manage_menus("list")
-    mock_session.get.assert_called_with("https://example.com/api/index.php/v1/menus/site/items?page[limit]=5&fields[items]=id,title,route,published")
+    mock_session.get.assert_called_with("https://example.com/api/index.php/v1/menus/site/items?page[limit]=5&fields[items]=id,title,link,published")
 
 
 @patch("pathlib.Path.cwd")
@@ -177,7 +177,7 @@ def test_manage_menus_list_with_menutype(mock_session_class, mock_cwd, temp_dir)
     mock_response.json.return_value = {"data": []}
     mock_session.get.return_value = mock_response
     manage_menus("list", menutype="mainmenu")
-    mock_session.get.assert_called_with("https://example.com/api/index.php/v1/menus/site/items?page[limit]=5&fields[items]=id,title,route,published&filter[menutype]=mainmenu")
+    mock_session.get.assert_called_with("https://example.com/api/index.php/v1/menus/site/items?page[limit]=5&fields[items]=id,title,link,published&filter[menutype]=mainmenu")
 
 
 @patch("pathlib.Path.cwd")
@@ -191,4 +191,4 @@ def test_manage_menus_list_with_state(mock_session_class, mock_cwd, temp_dir):
     mock_response.json.return_value = {"data": []}
     mock_session.get.return_value = mock_response
     manage_menus("list", state=1)
-    mock_session.get.assert_called_with("https://example.com/api/index.php/v1/menus/site/items?page[limit]=5&fields[items]=id,title,route,published&filter[published]=1")
+    mock_session.get.assert_called_with("https://example.com/api/index.php/v1/menus/site/items?page[limit]=5&fields[items]=id,title,link,published&filter[published]=1")

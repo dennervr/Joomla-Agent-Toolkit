@@ -56,10 +56,35 @@ def test_inspect_env_no_config_file(tmp_path):
     with patch("builtins.print") as mock_print:
         result = inspect_env(str(joomla_root))
 
-    assert result == {"error": "not found"}
+    assert result == {"error": "Not a Joomla root"}
     mock_print.assert_called_with(
-        "[ERROR] configuration.php not found. Not a Joomla root."
+        "[ERROR] Not a Joomla root."
     )
+
+
+def test_inspect_env_no_config_but_joomla_dirs(tmp_path):
+    joomla_root = tmp_path / "joomla_no_config"
+    joomla_root.mkdir()
+
+    # Create administrator directory
+    (joomla_root / "administrator").mkdir()
+    # Create components directory
+    (joomla_root / "components" / "com_example").mkdir(parents=True)
+
+    with patch("builtins.print") as mock_print:
+        result = inspect_env(str(joomla_root))
+
+    # Should proceed with empty config
+    assert result["config"] == {}
+    assert result["version"] is None
+    assert "com_example" in result["extensions"]["components"]
+
+    # Check that warning was printed
+    warning_call = mock_print.call_args_list[0]
+    assert "Warning: configuration.php not found" in warning_call[0][0]
+
+    # And the final output was printed
+    assert mock_print.call_count > 1
 
 
 def test_inspect_env_invalid_config(tmp_path):

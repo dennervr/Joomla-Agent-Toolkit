@@ -192,6 +192,12 @@ def main():
     bridge_parser = subparsers.add_parser(
         "bridge", help="Native Execution Bridge commands"
     )
+    bridge_parser.add_argument(
+        "--exec", type=str, help="Execution prefix, e.g., 'docker exec -i container'"
+    )
+    bridge_parser.add_argument(
+        "--cwd", type=str, help="Working directory for execution"
+    )
     bridge_subparsers = bridge_parser.add_subparsers(dest="bridge_command")
 
     # Run subcommand
@@ -261,7 +267,11 @@ def main():
         validate.validate_extension(args.path)
     elif args.command == "bridge":
         joomla_path = Path(args.path)
-        agent_bridge = bridge.AgentBridge(joomla_path)
+        agent_bridge = bridge.AgentBridge(
+            joomla_path,
+            exec_prefix=getattr(args, "exec", None),
+            cwd=getattr(args, "cwd", None),
+        )
         agent_bridge.deploy_php_script()
         if args.bridge_command == "run":
             result = agent_bridge.run_php_code(args.code)

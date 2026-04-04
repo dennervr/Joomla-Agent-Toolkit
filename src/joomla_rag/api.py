@@ -36,11 +36,13 @@ def _get_session():
         creds = json.load(f)
 
     session = requests.Session()
-    session.headers.update({
-        "Authorization": f"Bearer {creds['token']}",
-        "Content-Type": "application/json",
-        "Accept": "application/vnd.api+json",
-    })
+    session.headers.update(
+        {
+            "Authorization": f"Bearer {creds['token']}",
+            "Content-Type": "application/json",
+            "Accept": "application/vnd.api+json",
+        }
+    )
     return session, creds["url"]
 
 
@@ -181,22 +183,22 @@ def manage_menus(
     state: int = None,
 ):
     if action == "list":
-        endpoint = f"menus/site/items?page[limit]={limit}&fields[items]=id,title,route,published"
+        endpoint = f"menus/site/items?page[limit]={limit}&fields[items]=id,title,link,published"
         if menutype:
             endpoint += "&filter[menutype]=" + urllib.parse.quote(menutype)
         if state is not None:
             endpoint += f"&filter[published]={state}"
         response = api_request(endpoint)
         if response and "data" in response:
-            print("ID  | State | Title (Route)")
+            print("ID  | State | Title (Link)")
             print("-" * 30)
             for menu in response["data"]:
                 attrs = menu["attributes"]
                 state_str = {1: "Pub", 0: "Unpub"}.get(
                     attrs["published"], str(attrs["published"])
                 )
-                title_route = f"{attrs['title']} ({attrs.get('route', '')})"
-                print(f"{menu['id']:3} | {state_str:5} | {title_route}")
+                title_link = f"{attrs['title']} ({attrs.get('link', '')})"
+                print(f"{menu['id']:3} | {state_str:5} | {title_link}")
         else:
             print("No menu items found or error.")
     else:
