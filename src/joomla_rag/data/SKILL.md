@@ -78,6 +78,8 @@ These commands provide a native execution bridge for running PHP code and comman
 - `joomla-rag bridge trace --route "com_users&view=login"`: Trace the Joomla route to see how it resolves to components, views, etc.
 - `joomla-rag bridge auth`: Retrieve the API token for authentication.
 
+If the user's Joomla environment is running in Docker (e.g., a `docker-compose.yml` is present) and the local machine does not have PHP installed, the `bridge` commands will fail unless the `--exec` flag is provided. Proactively use bash to inspect `docker-compose.yml` or run `docker ps` to find the correct container/service name, and then append `--exec "docker exec -i <container_name>"` (or `--exec "docker compose exec -T <service>"`) to the `joomla-rag bridge ...` commands.
+
 ### Instructions for the LLM:
 1. When receiving the text response from the script, analyze from which `FILE` (`Source`) and `TOPIC` the answer came from.
 2. Synthesize the information into a conversational and cohesive response for the user.

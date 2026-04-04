@@ -16,22 +16,22 @@ class AgentBridge:
         self.exec_prefix = exec_prefix
         self.cwd = cwd
 
-        # Auto-detect Docker if no exec_prefix and no php
-        if self.exec_prefix is None:
-            if shutil.which("php") is None:
-                try:
-                    output = subprocess.check_output(
-                        ["docker", "ps", "--format", "{{.Names}}"], text=True
-                    )
-                    names = [
-                        name.strip()
-                        for name in output.splitlines()
-                        if "joomla" in name.lower()
-                    ]
-                    if names:
-                        self.exec_prefix = f"docker exec -i {names[0]}"
-                except subprocess.CalledProcessError:
-                    pass
+        if self.exec_prefix is None and shutil.which("php") is None:
+            compose_files = [
+                "docker-compose.yml",
+                "docker-compose.yaml",
+                "compose.yml",
+                "compose.yaml",
+            ]
+            has_compose = any((self.joomla_path / f).exists() for f in compose_files)
+            if has_compose:
+                raise RuntimeError(
+                    "PHP is not installed locally and a Docker Compose file was detected. Please delegate the execution to the container by providing the --exec flag (e.g., --exec 'docker compose exec <service>')."
+                )
+            else:
+                raise RuntimeError(
+                    "PHP is not installed locally. If you are using a containerized environment, please provide the --exec flag (e.g., --exec 'docker exec -i <container>')."
+                )
 
         # If exec_prefix and cwd, modify exec_prefix to include -w cwd for docker
         if self.exec_prefix and self.cwd:

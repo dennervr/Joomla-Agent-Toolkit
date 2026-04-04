@@ -23,9 +23,8 @@ def mock_joomla_path(temp_dir):
     return joomla_path
 
 
-@patch("subprocess.check_output")
 @patch("shutil.which")
-def test_agent_bridge_init(mock_which, mock_check_output, mock_joomla_path):
+def test_agent_bridge_init(mock_which, mock_joomla_path):
     mock_which.return_value = "/usr/bin/php"
     bridge = AgentBridge(mock_joomla_path)
     assert bridge.joomla_path == mock_joomla_path
@@ -34,23 +33,30 @@ def test_agent_bridge_init(mock_which, mock_check_output, mock_joomla_path):
     assert bridge.cwd is None
 
 
-@patch("subprocess.check_output")
 @patch("shutil.which")
-def test_agent_bridge_auto_detect_docker(
-    mock_which, mock_check_output, mock_joomla_path
-):
+def test_agent_bridge_no_php_with_compose(mock_which, mock_joomla_path):
     mock_which.return_value = None
-    mock_check_output.return_value = "joomla-container\nother-container"
-    bridge = AgentBridge(mock_joomla_path)
-    assert bridge.exec_prefix == "docker exec -i joomla-container"
+    (mock_joomla_path / "docker-compose.yml").touch()
+    with pytest.raises(
+        RuntimeError,
+        match="PHP is not installed locally and a Docker Compose file was detected",
+    ):
+        AgentBridge(mock_joomla_path)
 
 
-@patch("subprocess.check_output")
 @patch("shutil.which")
+def test_agent_bridge_no_php_no_compose(mock_which, mock_joomla_path):
+    mock_which.return_value = None
+    with pytest.raises(
+        RuntimeError,
+        match="PHP is not installed locally. If you are using a containerized environment",
+    ):
+        AgentBridge(mock_joomla_path)
+
+
 @patch("subprocess.run")
-def test_run_command_success(
-    mock_subprocess_run, mock_which, mock_check_output, mock_joomla_path
-):
+@patch("shutil.which")
+def test_run_command_success(mock_which, mock_subprocess_run, mock_joomla_path):
     mock_which.return_value = "/usr/bin/php"
     bridge = AgentBridge(mock_joomla_path)
     bridge.deploy_php_script()
@@ -101,12 +107,9 @@ def test_run_command_with_exec_prefix(mock_subprocess_run, mock_joomla_path):
     assert kwargs["cwd"] is None
 
 
-@patch("subprocess.check_output")
-@patch("shutil.which")
 @patch("subprocess.run")
-def test_run_command_failure(
-    mock_subprocess_run, mock_which, mock_check_output, mock_joomla_path
-):
+@patch("shutil.which")
+def test_run_command_failure(mock_which, mock_subprocess_run, mock_joomla_path):
     mock_which.return_value = "/usr/bin/php"
     bridge = AgentBridge(mock_joomla_path)
     bridge.deploy_php_script()
@@ -121,12 +124,9 @@ def test_run_command_failure(
         bridge.run_command("invalid", {})
 
 
-@patch("subprocess.check_output")
-@patch("shutil.which")
 @patch("subprocess.run")
-def test_run_php_code(
-    mock_subprocess_run, mock_which, mock_check_output, mock_joomla_path
-):
+@patch("shutil.which")
+def test_run_php_code(mock_which, mock_subprocess_run, mock_joomla_path):
     mock_which.return_value = "/usr/bin/php"
     bridge = AgentBridge(mock_joomla_path)
     bridge.deploy_php_script()
@@ -141,12 +141,9 @@ def test_run_php_code(
     assert result == {"output": "Hello World"}
 
 
-@patch("subprocess.check_output")
-@patch("shutil.which")
 @patch("subprocess.run")
-def test_trace_route(
-    mock_subprocess_run, mock_which, mock_check_output, mock_joomla_path
-):
+@patch("shutil.which")
+def test_trace_route(mock_which, mock_subprocess_run, mock_joomla_path):
     mock_which.return_value = "/usr/bin/php"
     bridge = AgentBridge(mock_joomla_path)
     bridge.deploy_php_script()
@@ -161,12 +158,9 @@ def test_trace_route(
     assert result == {"itemid": 123, "params": {"access": 1}}
 
 
-@patch("subprocess.check_output")
-@patch("shutil.which")
 @patch("subprocess.run")
-def test_get_api_token(
-    mock_subprocess_run, mock_which, mock_check_output, mock_joomla_path
-):
+@patch("shutil.which")
+def test_get_api_token(mock_which, mock_subprocess_run, mock_joomla_path):
     mock_which.return_value = "/usr/bin/php"
     bridge = AgentBridge(mock_joomla_path)
     bridge.deploy_php_script()
