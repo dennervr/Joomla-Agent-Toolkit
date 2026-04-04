@@ -165,6 +165,18 @@ def test_trace_route(mock_which, mock_subprocess_run, mock_joomla_path):
     assert result == {"itemid": 123, "params": {"access": 1}}
 
 
+def test_normalize_menu_link():
+    assert AgentBridge._normalize_menu_link("com_users&view=login") == (
+        "index.php?option=com_users&view=login"
+    )
+    assert AgentBridge._normalize_menu_link("option=com_users&view=login") == (
+        "index.php?option=com_users&view=login"
+    )
+    assert AgentBridge._normalize_menu_link("index.php?option=com_users&view=login") == (
+        "index.php?option=com_users&view=login"
+    )
+
+
 @patch("subprocess.run")
 @patch("shutil.which")
 def test_deploy_via_exec_without_exec_prefix(mock_which, mock_subprocess_run, mock_joomla_path):

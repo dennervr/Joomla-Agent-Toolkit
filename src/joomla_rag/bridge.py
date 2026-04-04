@@ -143,7 +143,35 @@ class AgentBridge:
 
     def trace_route(self, route: str) -> Dict[str, Any]:
         """Trace a Joomla route to find Itemid and menu details."""
-        return self.run_command("trace", {"route": route})
+        normalized = self._normalize_menu_link(route)
+        return self.run_command("trace", {"route": normalized})
+
+    @staticmethod
+    def _normalize_menu_link(route: str) -> str:
+        """Normalize route input to a Joomla menu `link` string.
+
+        The Joomla menu item `link` field commonly looks like:
+        - index.php?option=com_users&view=login
+
+        Agents often provide shortened forms:
+        - com_users&view=login
+        - option=com_users&view=login
+        """
+
+        r = (route or "").strip()
+        if not r:
+            return r
+
+        if r.startswith("index.php?"):
+            return r
+
+        if r.startswith("com_"):
+            return "index.php?option=" + r
+
+        if "option=" in r:
+            return "index.php?" + r
+
+        return r
 
     def get_api_token(self) -> Dict[str, Any]:
         """Generate or retrieve a Super User API token."""
