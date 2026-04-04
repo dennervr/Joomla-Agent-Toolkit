@@ -29,6 +29,8 @@ joomla-rag setup
 - `joomla-rag inspect [path]`: Introspects a local Joomla installation, returning database configs, version, and installed extensions concisely.
 - `joomla-rag api`: Manage Joomla content via REST API using `requests`. Subcommands: `articles list/get/create/delete`, `categories list`, `menus list`, `modules get`.
 - `joomla-rag bridge`: Native execution bridge for running PHP code and tracing routes within Joomla context. Subcommands: `run` (execute PHP code), `trace` (resolve routes), `auth` (retrieve API token).
+  - For containerized Joomla where the Joomla filesystem is not mounted on the host, use: `--exec ... --cwd ... --deploy-via-exec`.
+  - For debugging silent failures, use: `--verbose`.
 - `joomla-rag scaffold component [name]`: Instantly generates Joomla 4/5 MVC boilerplate code for components and modules (`provider.php`, XML manifests, entrypoints).
 - `joomla-rag validate [path]`: Validates a Joomla extension by parsing the XML manifest to check for required tags and verifying that all referenced files/folders actually exist.
 - `joomla-rag search "query"`: Command used autonomously by the AI to search for specific knowledge in the Joomla documentation.

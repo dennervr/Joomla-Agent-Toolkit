@@ -160,6 +160,14 @@ def main():
         "--state", type=int, help="State to filter menu items (published)"
     )
 
+    # Modules subcommand
+    modules_parser = api_subparsers.add_parser("modules", help="Manage modules")
+    modules_parser.add_argument("action", choices=["get"], help="Action to perform")
+    modules_parser.add_argument("--id", type=int, required=True, help="Module ID for get")
+    modules_parser.add_argument(
+        "--client", choices=["site", "admin"], default="site", help="Client (default: site)"
+    )
+
     # Scaffold command
     scaffold_parser = subparsers.add_parser(
         "scaffold", help="Scaffold Joomla components"
@@ -200,6 +208,9 @@ def main():
     )
     bridge_parser.add_argument(
         "--verbose", action="store_true", help="Enable verbose output"
+    )
+    bridge_parser.add_argument(
+        "--deploy-via-exec", action="store_true", help="Deploy PHP script via exec into the container environment"
     )
     bridge_subparsers = bridge_parser.add_subparsers(dest="bridge_command")
 
@@ -257,6 +268,8 @@ def main():
             api.manage_menus(
                 args.action, menutype=args.menutype, limit=args.limit, state=args.state
             )
+        elif args.api_command == "modules":
+            api.manage_modules(args.action, id=args.id, client=args.client)
         else:
             api_parser.print_help()
     elif args.command == "scaffold":
@@ -275,6 +288,7 @@ def main():
             exec_prefix=getattr(args, "exec", None),
             cwd=getattr(args, "cwd", None),
             verbose=getattr(args, "verbose", False),
+            deploy_via_exec=getattr(args, "deploy_via_exec", False),
         )
         agent_bridge.deploy_php_script()
         if args.bridge_command == "run":

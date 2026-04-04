@@ -5,6 +5,7 @@ import shlex
 import shutil
 from pathlib import Path
 from typing import Dict, Any
+import base64
 
 
 class AgentBridge:
@@ -16,12 +17,14 @@ class AgentBridge:
         exec_prefix: str = None,
         cwd: str = None,
         verbose: bool = False,
+        deploy_via_exec: bool = False,
     ):
         self.joomla_path = joomla_path
         self.php_script_path = joomla_path / "cli" / "agent_cli.php"
         self.exec_prefix = exec_prefix
         self.cwd = cwd
         self.verbose = verbose
+        self.deploy_via_exec = deploy_via_exec
 
         if self.exec_prefix is None and shutil.which("php") is None:
             compose_files = [
@@ -51,20 +54,35 @@ class AgentBridge:
 
     def deploy_php_script(self):
         """Deploy the PHP CLI script to Joomla's cli directory."""
-        cli_dir = self.joomla_path / "cli"
-        cli_dir.mkdir(exist_ok=True)
-
-        php_content = self._get_php_script_content()
-        self.php_script_path.write_text(php_content)
-
-        if self.verbose:
-            print(
-                f"deploy_php_script() writes to {self.php_script_path}", file=sys.stderr
+        if self.deploy_via_exec:
+            if not self.exec_prefix:
+                raise RuntimeError("deploy_via_exec requires exec_prefix to be set")
+            php_content = self._get_php_script_content()
+            encoded = base64.b64encode(php_content.encode("utf-8")).decode("utf-8")
+            php_command = (
+                'is_dir("cli") || mkdir("cli", 0775, true); '
+                f'file_put_contents("cli/agent_cli.php", base64_decode("{encoded}"));'
             )
+            cmd = shlex.split(self.exec_prefix) + ["php", "-r", php_command]
+            subprocess.run(cmd, check=True)
+            if self.verbose:
+                print(
+                    "Deploying PHP script via exec into container environment",
+                    file=sys.stderr,
+                )
+        else:
+            cli_dir = self.joomla_path / "cli"
+            cli_dir.mkdir(exist_ok=True)
+            php_content = self._get_php_script_content()
+            self.php_script_path.write_text(php_content)
+            if self.verbose:
+                print(f"Deploying PHP script locally to {self.php_script_path}", file=sys.stderr)
 
     def run_command(self, command: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         """Run a command via the PHP script."""
-        if not self.php_script_path.exists():
+        # Only verify local filesystem when running locally.
+        # If running via exec_prefix (e.g. Docker) the script must exist in that environment.
+        if self.exec_prefix is None and not self.php_script_path.exists():
             raise FileNotFoundError(
                 f"PHP script not found at {self.php_script_path}. Run deploy_php_script() first."
             )

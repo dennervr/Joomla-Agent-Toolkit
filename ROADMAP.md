@@ -13,12 +13,13 @@ This document outlines the planned features to expand the `joomla-rag` CLI from 
 - **Approach:** Inject a Joomla Console Plugin (CLI Application) that properly bootstraps the DI container.
 - **Execution:** Expose an `agent:run` command to receive PHP logic via `stdin` (JSON payload) and return structured output.
 - **Audit & Logging (Crucial):** Every code execution or database alteration made through this bridge MUST be logged automatically (e.g., to an `agent_audit.log` or database table) for analysis, security review, and future replication.
+- **Container Support:** When Joomla runs in a container without host volume mounts, deploy the bridge script inside the container using `joomla-rag bridge --exec ... --cwd ... --deploy-via-exec`.
 
 ## 3. Entity Inspector and Editor (REST API)
 **Goal:** Empower the AI to read and modify Joomla data (Articles, Categories, Menus, Modules, Plugins) without breaking JSON structures (`params`) or UTF-8 encoding.
 - **Approach:** Deprecate raw SQL queries for complex entities. Instead, use the Joomla 4/5 Core Web Services (REST API).
 - **Implementation:** The CLI Runner will provide an `agent:auth` command to securely fetch a Super User API token and enable the Web Services plugin. The Python toolkit will then make clean HTTP requests.
-- *Commands:* `joomla-rag api modules get <id>`, `joomla-rag api menus list`, etc.
+- *Commands:* `joomla-rag api modules get --id <id> [--client site|admin]`, `joomla-rag api menus list`, etc.
 
 ## 4. Route and Redirect Mapper 🗺️ *[NEW]*
 **Goal:** Demystify Joomla's `Itemid` routing system to understand which menu item controls a specific view, its access level (ACL), and redirection rules.

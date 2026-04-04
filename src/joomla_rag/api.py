@@ -203,3 +203,38 @@ def manage_menus(
             print("No menu items found or error.")
     else:
         print(f"[ERROR] Unknown action: {action}")
+
+
+def manage_modules(
+    action: str,
+    id: int = None,
+    client: str = "site",
+):
+    if action == "get":
+        if not id:
+            print("[ERROR] ID required for get action.")
+            return
+        response = api_request(f"modules/{client}/{id}")
+        if response and "data" in response:
+            attrs = response["data"]["attributes"]
+            print(f"ID: {response['data']['id']}")
+            print(f"Title: {attrs.get('title', '')}")
+            print(f"Module: {attrs.get('module', '')}")
+            print(f"Position: {attrs.get('position', '')}")
+            print(f"Published: {'Yes' if attrs.get('published') == 1 else 'No'}")
+            print(f"Access: {attrs.get('access', '')}")
+            print(f"Assigned: {attrs.get('assigned', '')}")
+            print(f"Assignment: {attrs.get('assignment', '')}")
+            content = attrs.get('content', '')
+            if len(content) > 100:
+                content = content[:100] + "..."
+            print(f"Content: {content}")
+            params = attrs.get('params', {})
+            if params:
+                print(f"Params: {json.dumps(params, indent=2)}")
+            else:
+                print("Params: {}")
+        else:
+            print("Module not found or error.")
+    else:
+        print(f"[ERROR] Unknown action: {action}")

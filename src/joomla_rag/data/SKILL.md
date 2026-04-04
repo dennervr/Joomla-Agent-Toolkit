@@ -35,7 +35,7 @@ If you receive an `[ERROR] API Token missing`, you MUST ask the user for the Sit
 joomla-rag api login <url> <token>
 ```
 **CRITICAL: Connection Refused / Port Issues**
-If you receive `[ERROR] Connection failed: <urlopen error [Errno 111] Connection refused>`, it means the URL you saved is wrong or the Docker container is running on a different port (e.g., `8080`).
+If you receive `[ERROR] Request failed: ...` (e.g., connection refused), it means the URL you saved is wrong or the Docker container is running on a different port (e.g., `8080`).
 1. Proactively use bash to inspect `docker-compose.yml` or run `docker ps` to figure out the correct mapped port.
 2. If you find the port (e.g., 8080), run the login command again with the correct URL: `joomla-rag api login http://localhost:8080 <token>`.
 3. If you cannot find the port, ask the user for the exact local URL and port.
@@ -53,7 +53,7 @@ And list menus:
 - `joomla-rag api menus list [--menutype <menutype>] [--state <0|1|-2>] [--limit 5]`
 
 You can also read module parameters and content:
-- `joomla-rag api modules get --id <id>`
+- `joomla-rag api modules get --id <id> [--client site|admin]`
 
 **IMPORTANT:** Always use `--search`, `--category`, or `--limit` when listing articles to find what you need without wasting context tokens on hundreds of results. The output is a token-efficient compact table.
 
@@ -78,7 +78,13 @@ These commands provide a native execution bridge for running PHP code and comman
 - `joomla-rag bridge trace "com_users&view=login" --path <joomla_root>`: Trace the Joomla route to see how it resolves to components, views, etc.
 - `joomla-rag bridge auth --path <joomla_root>`: Retrieve the API token for authentication.
 
-If the user's Joomla environment is running in Docker (e.g., a `docker-compose.yml` is present) and the local machine does not have PHP installed, the `bridge` commands will fail unless the `--exec` flag is provided. Proactively use bash to inspect `docker-compose.yml` or run `docker ps` to find the correct container/service name, and then append `--exec "docker exec -i <container>" --cwd /var/www/html` (or `--exec "docker compose exec -T <service>" --cwd /var/www/html`) to the `joomla-rag bridge ...` commands.
+If the user's Joomla environment is running in Docker and the container filesystem is not mounted to the host (e.g., no volume mounts for the Joomla directory), use `--exec` and `--deploy-via-exec` so the PHP bridge script is written inside the container.
+
+Example (docker exec):
+`joomla-rag bridge --exec "docker exec -i <container>" --cwd /var/www/html --deploy-via-exec run "echo 'Hello';" --path <joomla_root>`
+
+Example (docker compose):
+`joomla-rag bridge --exec "docker compose exec -T <service>" --cwd /var/www/html --deploy-via-exec trace "com_users&view=login" --path <joomla_root>`
 
 If the PHP script fails with empty stderr, use `--verbose` to see the exact command.
 

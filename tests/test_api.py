@@ -11,6 +11,7 @@ from joomla_rag.api import (
     manage_articles,
     manage_categories,
     manage_menus,
+    manage_modules,
     api_request,
 )
 
@@ -192,3 +193,41 @@ def test_manage_menus_list_with_state(mock_session_class, mock_cwd, temp_dir):
     mock_session.get.return_value = mock_response
     manage_menus("list", state=1)
     mock_session.get.assert_called_with("https://example.com/api/index.php/v1/menus/site/items?page[limit]=5&fields[items]=id,title,link,published&filter[published]=1")
+
+
+@patch("pathlib.Path.cwd")
+@patch("joomla_rag.api.requests.Session")
+def test_manage_modules_get_default_client(mock_session_class, mock_cwd, temp_dir):
+    mock_cwd.return_value = temp_dir
+    api_login("https://example.com", "test_token")
+    mock_session = MagicMock()
+    mock_session_class.return_value = mock_session
+    mock_response = MagicMock()
+    mock_response.json.return_value = {"data": {"id": 1, "attributes": {}}}
+    mock_session.get.return_value = mock_response
+    manage_modules("get", id=1)
+    mock_session.get.assert_called_with("https://example.com/api/index.php/v1/modules/site/1")
+
+
+@patch("pathlib.Path.cwd")
+@patch("joomla_rag.api.requests.Session")
+def test_manage_modules_get_admin_client(mock_session_class, mock_cwd, temp_dir):
+    mock_cwd.return_value = temp_dir
+    api_login("https://example.com", "test_token")
+    mock_session = MagicMock()
+    mock_session_class.return_value = mock_session
+    mock_response = MagicMock()
+    mock_response.json.return_value = {"data": {"id": 1, "attributes": {}}}
+    mock_session.get.return_value = mock_response
+    manage_modules("get", id=1, client="admin")
+    mock_session.get.assert_called_with("https://example.com/api/index.php/v1/modules/admin/1")
+
+
+@patch("pathlib.Path.cwd")
+@patch("joomla_rag.api.requests.Session")
+def test_manage_modules_get_missing_id(mock_session_class, mock_cwd, temp_dir, capsys):
+    mock_cwd.return_value = temp_dir
+    api_login("https://example.com", "test_token")
+    manage_modules("get", id=None)
+    captured = capsys.readouterr()
+    assert "[ERROR] ID required for get action." in captured.out

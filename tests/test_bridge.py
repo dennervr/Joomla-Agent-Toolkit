@@ -5,6 +5,7 @@ from pathlib import Path
 from unittest.mock import patch, mock_open, MagicMock, call
 import subprocess
 import sys
+import base64
 from joomla_rag.bridge import AgentBridge
 
 
@@ -30,7 +31,7 @@ def test_deploy_php_script_verbose(mock_which, mock_joomla_path, capsys):
     bridge.deploy_php_script()
 
     captured = capsys.readouterr()
-    assert f"deploy_php_script() writes to {bridge.php_script_path}" in captured.err
+    assert f"Deploying PHP script locally to {bridge.php_script_path}" in captured.err
 
 
 @patch("shutil.which")
@@ -166,26 +167,32 @@ def test_trace_route(mock_which, mock_subprocess_run, mock_joomla_path):
 
 @patch("subprocess.run")
 @patch("shutil.which")
-def test_run_command_verbose(mock_which, mock_subprocess_run, mock_joomla_path, capsys):
+def test_deploy_via_exec_without_exec_prefix(mock_which, mock_subprocess_run, mock_joomla_path):
     mock_which.return_value = "/usr/bin/php"
-    bridge = AgentBridge(mock_joomla_path, verbose=True)
-    bridge.deploy_php_script()
+    bridge = AgentBridge(mock_joomla_path, deploy_via_exec=True)
+    with pytest.raises(RuntimeError, match="deploy_via_exec requires exec_prefix to be set"):
+        bridge.deploy_php_script()
 
-    mock_process = MagicMock()
-    mock_process.returncode = 0
-    mock_process.stdout = '{"result": "success"}'
-    mock_process.stderr = ""
-    mock_subprocess_run.return_value = mock_process
 
-    result = bridge.run_command("run", {"code": "echo 'test';"})
-    assert result == {"result": "success"}
-
-    captured = capsys.readouterr()
-    assert f"Resolved joomla_path: {mock_joomla_path}" in captured.err
-    assert "exec_prefix used: False" in captured.err
-    assert "Command to execute:" in captured.err
-    assert (
-        "php" in captured.err
-        and "agent_cli.php" in captured.err
-        and "agent:run" in captured.err
+@patch("subprocess.run")
+def test_deploy_via_exec_with_exec_prefix(mock_subprocess_run, mock_joomla_path):
+    bridge = AgentBridge(
+        mock_joomla_path, exec_prefix="docker exec -i joomla-container", deploy_via_exec=True
     )
+    mock_subprocess_run.return_value = MagicMock()
+    bridge.deploy_php_script()
+    mock_subprocess_run.assert_called_once()
+    args, kwargs = mock_subprocess_run.call_args
+    expected_encoded = base64.b64encode(
+        bridge._get_php_script_content().encode("utf-8")
+    ).decode("utf-8")
+    expected_cmd = [
+        "docker",
+        "exec",
+        "-i",
+        "joomla-container",
+        "php",
+        "-r",
+        f'is_dir("cli") || mkdir("cli", 0775, true); file_put_contents("cli/agent_cli.php", base64_decode("{expected_encoded}"));',
+    ]
+    assert args[0] == expected_cmd
