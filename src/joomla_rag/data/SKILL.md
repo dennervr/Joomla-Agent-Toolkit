@@ -25,7 +25,7 @@ joomla-rag search "How to create a custom component MVC"
 The search will return the 5 most relevant snippets (`chunks`) from the official manual.
 
 ### 3. Interacting with Joomla Content via API (`joomla-rag api`)
-To read or write articles directly, you must use the Joomla REST API. 
+To read or write articles directly, you must use the Joomla REST API. This uses the `requests` library to interact with Joomla's REST API.
 First, check if you have access by running:
 ```bash
 joomla-rag api articles list
@@ -46,17 +46,14 @@ After successful login, you can manage articles using these commands:
 - `joomla-rag api articles create --title "My Article" --text "<p>Content</p>"`
 - `joomla-rag api articles delete --id <id>`
 
-You can also manage categories:
+You can also list categories:
 - `joomla-rag api categories list [--search "keyword"] [--state <0|1|-2>] [--limit 5]`
-- `joomla-rag api categories get --id <id>`
-- `joomla-rag api categories create --title "My Category"`
-- `joomla-rag api categories delete --id <id>`
 
-And manage menus:
+And list menus:
 - `joomla-rag api menus list [--menutype <menutype>] [--state <0|1|-2>] [--limit 5]`
-- `joomla-rag api menus get --id <id>`
-- `joomla-rag api menus create --title "My Menu Item" --menutype <menutype>`
-- `joomla-rag api menus delete --id <id>`
+
+You can also read module parameters and content:
+- `joomla-rag api modules get --id <id>`
 
 **IMPORTANT:** Always use `--search`, `--category`, or `--limit` when listing articles to find what you need without wasting context tokens on hundreds of results. The output is a token-efficient compact table.
 
@@ -73,6 +70,13 @@ Before concluding a task that involved creating or modifying a Joomla extension,
 joomla-rag validate <path-to-extension>
 ```
 This ensures all required tags are present and all files referenced in `<files>` or `<media>` tags actually exist.
+
+### 6. Bridge Commands (`joomla-rag bridge`)
+These commands provide a native execution bridge for running PHP code and commands within the Joomla context.
+
+- `joomla-rag bridge run --code "echo 'Hello World';"`: Execute arbitrary PHP code in the Joomla environment.
+- `joomla-rag bridge trace --route "com_users&view=login"`: Trace the Joomla route to see how it resolves to components, views, etc.
+- `joomla-rag bridge auth`: Retrieve the API token for authentication.
 
 ### Instructions for the LLM:
 1. When receiving the text response from the script, analyze from which `FILE` (`Source`) and `TOPIC` the answer came from.

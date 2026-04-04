@@ -1,65 +1,84 @@
 from pathlib import Path
-import urllib.request
+import requests
 import urllib.parse
 import json
 import sys
 
 CREDENTIALS_PATH = Path.cwd() / ".joomla-rag" / "credentials.json"
 
+
 def api_login(url: str, token: str):
     # Ensure url doesn't end with slash
-    if url.endswith('/'):
-        url = url.rstrip('/')
-    
+    if url.endswith("/"):
+        url = url.rstrip("/")
+
     # If not containing /api/index.php/v1 or /api/v1, append /api/index.php/v1
-    if '/api/index.php/v1' not in url and '/api/v1' not in url:
-        url += '/api/index.php/v1'
-    
+    if "/api/index.php/v1" not in url and "/api/v1" not in url:
+        url += "/api/index.php/v1"
+
     # Ensure it doesn't have /api/v1 if it has /api/index.php/v1, but since we append only if not present, ok.
-    
+
     credentials = {"url": url, "token": token}
     CREDENTIALS_PATH.parent.mkdir(parents=True, exist_ok=True)
-    with open(CREDENTIALS_PATH, 'w') as f:
+    with open(CREDENTIALS_PATH, "w") as f:
         json.dump(credentials, f)
     print("API credentials saved successfully.")
 
-def api_request(endpoint: str, method: str = "GET", data: dict = None):
+
+def _get_session():
     if not CREDENTIALS_PATH.exists():
-        print("[ERROR] API Token missing. Please ask the user for their Joomla Super User API Token and the site URL, then run 'joomla-rag api login <url> <token>'")
+        print(
+            "[ERROR] API Token missing. Please ask the user for their Joomla Super User API Token and the site URL, then run 'joomla-rag api login <url> <token>'"
+        )
         sys.exit(1)
-    
-    with open(CREDENTIALS_PATH, 'r') as f:
+
+    with open(CREDENTIALS_PATH, "r") as f:
         creds = json.load(f)
-    
-    url = creds["url"] + "/" + endpoint
-    headers = {
-        "X-Joomla-Token": creds["token"],
+
+    session = requests.Session()
+    session.headers.update({
+        "Authorization": f"Bearer {creds['token']}",
         "Content-Type": "application/json",
-        "Accept": "application/vnd.api+json"
-    }
-    
-    if data:
-        data = json.dumps(data).encode('utf-8')
-    
-    req = urllib.request.Request(url, data=data, headers=headers, method=method)
-    
+        "Accept": "application/vnd.api+json",
+    })
+    return session, creds["url"]
+
+
+def api_request(endpoint: str, method: str = "GET", data: dict = None):
+    session, base_url = _get_session()
+    url = base_url + "/" + endpoint
     try:
-        with urllib.request.urlopen(req) as response:
-            return json.loads(response.read().decode('utf-8'))
-    except urllib.error.HTTPError as e:
-        try:
-            error_data = json.loads(e.read().decode('utf-8'))
-            print(f"[ERROR] HTTP {e.code}: {error_data}")
-        except:
-            print(f"[ERROR] HTTP {e.code}")
-        return None
-    except Exception as e:
-        print(f"[ERROR] Connection failed: {e}")
+        if method == "GET":
+            response = session.get(url)
+        elif method == "POST":
+            response = session.post(url, json=data)
+        elif method == "DELETE":
+            response = session.delete(url)
+        else:
+            raise ValueError(f"Unsupported method {method}")
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        print(f"[ERROR] Request failed: {e}")
         return None
 
-def manage_articles(action: str, id: int = None, title: str = None, text: str = None, search: str = None, limit: int = 5, category: int = None, state: int = None):
+
+def manage_articles(
+    action: str,
+    id: int = None,
+    title: str = None,
+    text: str = None,
+    search: str = None,
+    limit: int = 5,
+    category: int = None,
+    state: int = None,
+):
     if action == "list":
-        endpoint = "content/articles?page[limit]=" + str(limit) + "&fields[articles]=id,title,alias,state,catid"
+        endpoint = (
+            "content/articles?page[limit]="
+            + str(limit)
+            + "&fields[articles]=id,title,alias,state,catid"
+        )
         if search:
             endpoint += "&filter[search]=" + urllib.parse.quote(search)
         if category is not None:
@@ -72,8 +91,15 @@ def manage_articles(action: str, id: int = None, title: str = None, text: str = 
             print("-" * 40)
             for article in response["data"]:
                 attrs = article["attributes"]
-                state_str = {1: 'Pub', 0: 'Unpub', -2: 'Trash'}.get(attrs['state'], str(attrs['state']))
-                catid = article.get('relationships', {}).get('category', {}).get('data', {}).get('id', '')
+                state_str = {1: "Pub", 0: "Unpub", -2: "Trash"}.get(
+                    attrs["state"], str(attrs["state"])
+                )
+                catid = (
+                    article.get("relationships", {})
+                    .get("category", {})
+                    .get("data", {})
+                    .get("id", "")
+                )
                 title_alias = f"{attrs['title']} ({attrs.get('alias', '')})"
                 print(f"{article['id']:3} | {state_str:5} | {catid:3} | {title_alias}")
         else:
@@ -114,7 +140,15 @@ def manage_articles(action: str, id: int = None, title: str = None, text: str = 
     else:
         print(f"[ERROR] Unknown action: {action}")
 
-def manage_categories(action: str, id: int = None, title: str = None, search: str = None, limit: int = 5, state: int = None):
+
+def manage_categories(
+    action: str,
+    id: int = None,
+    title: str = None,
+    search: str = None,
+    limit: int = 5,
+    state: int = None,
+):
     if action == "list":
         endpoint = f"categories?extension=com_content&page[limit]={limit}&fields[categories]=id,title,alias,published"
         if search:
@@ -127,7 +161,9 @@ def manage_categories(action: str, id: int = None, title: str = None, search: st
             print("-" * 30)
             for category in response["data"]:
                 attrs = category["attributes"]
-                state_str = {1: 'Pub', 0: 'Unpub'}.get(attrs['published'], str(attrs['published']))
+                state_str = {1: "Pub", 0: "Unpub"}.get(
+                    attrs["published"], str(attrs["published"])
+                )
                 title_alias = f"{attrs['title']} ({attrs.get('alias', '')})"
                 print(f"{category['id']:3} | {state_str:5} | {title_alias}")
         else:
@@ -135,7 +171,15 @@ def manage_categories(action: str, id: int = None, title: str = None, search: st
     else:
         print(f"[ERROR] Unknown action: {action}")
 
-def manage_menus(action: str, id: int = None, title: str = None, menutype: str = None, limit: int = 5, state: int = None):
+
+def manage_menus(
+    action: str,
+    id: int = None,
+    title: str = None,
+    menutype: str = None,
+    limit: int = 5,
+    state: int = None,
+):
     if action == "list":
         endpoint = f"menus/site/items?page[limit]={limit}&fields[items]=id,title,route,published"
         if menutype:
@@ -148,7 +192,9 @@ def manage_menus(action: str, id: int = None, title: str = None, menutype: str =
             print("-" * 30)
             for menu in response["data"]:
                 attrs = menu["attributes"]
-                state_str = {1: 'Pub', 0: 'Unpub'}.get(attrs['published'], str(attrs['published']))
+                state_str = {1: "Pub", 0: "Unpub"}.get(
+                    attrs["published"], str(attrs["published"])
+                )
                 title_route = f"{attrs['title']} ({attrs.get('route', '')})"
                 print(f"{menu['id']:3} | {state_str:5} | {title_route}")
         else:

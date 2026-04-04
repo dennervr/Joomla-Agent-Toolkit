@@ -3,6 +3,7 @@ from pathlib import Path
 import tempfile
 from joomla_rag.validate import validate_extension
 
+
 def create_valid_extension(tmp_path):
     """Create a minimal valid Joomla extension structure."""
     ext_dir = tmp_path / "com_test"
@@ -40,6 +41,7 @@ def create_valid_extension(tmp_path):
 
     return ext_dir
 
+
 def create_invalid_extension(tmp_path):
     """Create an invalid extension missing required tags."""
     ext_dir = tmp_path / "com_invalid"
@@ -55,11 +57,13 @@ def create_invalid_extension(tmp_path):
 
     return ext_dir
 
+
 def test_validate_valid_extension(tmp_path):
     """Test validation of a valid extension."""
     ext_dir = create_valid_extension(tmp_path)
     result = validate_extension(str(ext_dir))
     assert result is True
+
 
 def test_validate_invalid_extension(tmp_path):
     """Test validation of an invalid extension."""

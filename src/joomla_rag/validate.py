@@ -2,6 +2,7 @@ import os
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+
 def validate_extension(path: str) -> bool:
     """
     Validates a Joomla extension by checking the XML manifest and file references.
