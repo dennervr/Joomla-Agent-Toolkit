@@ -113,3 +113,45 @@ def manage_articles(action: str, id: int = None, title: str = None, text: str = 
             print("Failed to delete article.")
     else:
         print(f"[ERROR] Unknown action: {action}")
+
+def manage_categories(action: str, id: int = None, title: str = None, search: str = None, limit: int = 5, state: int = None):
+    if action == "list":
+        endpoint = f"categories?extension=com_content&page[limit]={limit}&fields[categories]=id,title,alias,published"
+        if search:
+            endpoint += "&filter[search]=" + urllib.parse.quote(search)
+        if state is not None:
+            endpoint += f"&filter[published]={state}"
+        response = api_request(endpoint)
+        if response and "data" in response:
+            print("ID  | State | Title (Alias)")
+            print("-" * 30)
+            for category in response["data"]:
+                attrs = category["attributes"]
+                state_str = {1: 'Pub', 0: 'Unpub'}.get(attrs['published'], str(attrs['published']))
+                title_alias = f"{attrs['title']} ({attrs.get('alias', '')})"
+                print(f"{category['id']:3} | {state_str:5} | {title_alias}")
+        else:
+            print("No categories found or error.")
+    else:
+        print(f"[ERROR] Unknown action: {action}")
+
+def manage_menus(action: str, id: int = None, title: str = None, menutype: str = None, limit: int = 5, state: int = None):
+    if action == "list":
+        endpoint = f"menus/site/items?page[limit]={limit}&fields[items]=id,title,route,published"
+        if menutype:
+            endpoint += "&filter[menutype]=" + urllib.parse.quote(menutype)
+        if state is not None:
+            endpoint += f"&filter[published]={state}"
+        response = api_request(endpoint)
+        if response and "data" in response:
+            print("ID  | State | Title (Route)")
+            print("-" * 30)
+            for menu in response["data"]:
+                attrs = menu["attributes"]
+                state_str = {1: 'Pub', 0: 'Unpub'}.get(attrs['published'], str(attrs['published']))
+                title_route = f"{attrs['title']} ({attrs.get('route', '')})"
+                print(f"{menu['id']:3} | {state_str:5} | {title_route}")
+        else:
+            print("No menu items found or error.")
+    else:
+        print(f"[ERROR] Unknown action: {action}")

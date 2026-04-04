@@ -97,6 +97,20 @@ def main():
     articles_parser.add_argument("--category", type=int, help="Category ID to filter articles")
     articles_parser.add_argument("--state", type=int, help="State to filter articles")
     
+    # Categories subcommand
+    categories_parser = api_subparsers.add_parser("categories", help="Manage categories")
+    categories_parser.add_argument("action", choices=["list"], help="Action to perform")
+    categories_parser.add_argument("--search", type=str, help="Search keyword to filter categories")
+    categories_parser.add_argument("--limit", type=int, default=5, help="Max number of categories to return (default 5)")
+    categories_parser.add_argument("--state", type=int, help="State to filter categories (published)")
+    
+    # Menus subcommand
+    menus_parser = api_subparsers.add_parser("menus", help="Manage menu items")
+    menus_parser.add_argument("action", choices=["list"], help="Action to perform")
+    menus_parser.add_argument("--menutype", type=str, help="Menu type to filter menu items")
+    menus_parser.add_argument("--limit", type=int, default=5, help="Max number of menu items to return (default 5)")
+    menus_parser.add_argument("--state", type=int, help="State to filter menu items (published)")
+    
     # Scaffold command
     scaffold_parser = subparsers.add_parser("scaffold", help="Scaffold Joomla components")
     scaffold_subparsers = scaffold_parser.add_subparsers(dest="scaffold_command")
@@ -105,6 +119,11 @@ def main():
     component_parser = scaffold_subparsers.add_parser("component", help="Scaffold a component")
     component_parser.add_argument("name", type=str, help="Component name")
     component_parser.add_argument("--path", type=str, default=".", help="Path to Joomla root")
+    
+    # Module subcommand
+    module_parser = scaffold_subparsers.add_parser("module", help="Scaffold a module")
+    module_parser.add_argument("name", type=str, help="Module name")
+    module_parser.add_argument("--path", type=str, default=".", help="Path to Joomla root")
     
     # Validate command
     validate_parser = subparsers.add_parser("validate", help="Validate Joomla extension")
@@ -125,11 +144,17 @@ def main():
             api.api_login(args.url, args.token)
         elif args.api_command == "articles":
             api.manage_articles(args.action, id=args.id, title=args.title, text=args.text, search=args.search, limit=args.limit, category=args.category, state=args.state)
+        elif args.api_command == "categories":
+            api.manage_categories(args.action, search=args.search, limit=args.limit, state=args.state)
+        elif args.api_command == "menus":
+            api.manage_menus(args.action, menutype=args.menutype, limit=args.limit, state=args.state)
         else:
             api_parser.print_help()
     elif args.command == "scaffold":
         if args.scaffold_command == "component":
             scaffold.scaffold_component(args.name, args.path)
+        elif args.scaffold_command == "module":
+            scaffold.scaffold_module(args.name, args.path)
         else:
             scaffold_parser.print_help()
     elif args.command == "validate":

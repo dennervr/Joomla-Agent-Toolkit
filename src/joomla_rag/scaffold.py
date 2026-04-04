@@ -181,3 +181,101 @@ class {namespace_prefix}ServiceProvider implements ServiceProviderInterface
     print(f"Component '{name}' scaffolded successfully. Created files:")
     for file in created_files:
         print(f"  {file}")
+
+def scaffold_module(name: str, path: str = "."):
+    """
+    Scaffold a basic Joomla 4/5 module structure.
+    """
+    # Normalize name
+    if not name.startswith('mod_'):
+        name = 'mod_' + name
+    
+    # Compute display name and namespace
+    display_name = name.replace('mod_', '').title()
+    namespace_prefix = 'Mod' + display_name
+    upper_name = name.replace('mod_', '').upper()
+    
+    # Ensure path exists
+    path_obj = Path(path)
+    if not path_obj.exists():
+        path_obj.mkdir(parents=True, exist_ok=True)
+    
+    # Define directory
+    module_dir = path_obj / 'modules' / name
+    
+    # Create directory
+    module_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Module entry file: name.php
+    entry_file = module_dir / f'{name}.php'
+    entry_content = f'''<?php
+defined('_JEXEC') or die;
+
+use Joomla\\CMS\\Helper\\ModuleHelper;
+
+require ModuleHelper::getLayoutPath('{name}');
+'''
+    with open(entry_file, 'w') as f:
+        f.write(entry_content)
+    
+    # Template file: tmpl/default.php
+    tmpl_dir = module_dir / 'tmpl'
+    tmpl_dir.mkdir(parents=True, exist_ok=True)
+    tmpl_file = tmpl_dir / 'default.php'
+    tmpl_content = f'''<?php
+defined('_JEXEC') or die;
+
+echo '<h3>Hello from {name}</h3>';
+'''
+    with open(tmpl_file, 'w') as f:
+        f.write(tmpl_content)
+    
+    # Services provider: services/provider.php
+    services_dir = module_dir / 'services'
+    services_dir.mkdir(parents=True, exist_ok=True)
+    provider_file = services_dir / 'provider.php'
+    provider_content = f'''<?php
+defined('_JEXEC') or die;
+
+use Joomla\\DI\\Container;
+use Joomla\\DI\\ServiceProviderInterface;
+
+class {namespace_prefix}ServiceProvider implements ServiceProviderInterface
+{{
+    public function register(Container $container)
+    {{
+        // Register services here
+    }}
+}}
+'''
+    with open(provider_file, 'w') as f:
+        f.write(provider_content)
+    
+    # Module XML manifest: name.xml
+    xml_file = module_dir / f'{name}.xml'
+    xml_content = f'''<?xml version="1.0" encoding="utf-8"?>
+<extension type="module" version="4.0" client="site" method="upgrade">
+    <name>{display_name}</name>
+    <version>1.0.0</version>
+    <description>MOD_{upper_name}_DESCRIPTION</description>
+    <files>
+        <filename module="{name}">{name}.php</filename>
+        <folder>src</folder>
+        <folder>services</folder>
+        <folder>tmpl</folder>
+    </files>
+</extension>
+'''
+    with open(xml_file, 'w') as f:
+        f.write(xml_content)
+    
+    # Success message
+    created_files = [
+        str(entry_file),
+        str(tmpl_file),
+        str(provider_file),
+        str(xml_file)
+    ]
+    print(f"Module '{name}' scaffolded successfully. Created files:")
+    for file in created_files:
+        print(f"  {file}")

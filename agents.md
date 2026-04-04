@@ -17,15 +17,18 @@ In OpenCode and Anthropic-based agents (like Claude Desktop), keeping local serv
 - Has a YAML frontmatter defining `name` and `description`.
 - The agent reads the instructions and available tools **only** when the user needs to work with Joomla.
 
-### Current Implementation: The RAG Module for the Agent
+### Current Implementation: The Joomla Agent Toolkit
 
-The first implemented "Skill" is the intelligent documentation search (RAG):
+The toolkit now provides multiple skills for comprehensive Joomla development:
 
-1. **The Agent Receives the Prompt:** The user asks, for example, "How to create an MVC component in Joomla 5?".
-2. **Skill Activation:** The AI detects the "Joomla" context and loads the `joomla-docs` skill.
-3. **Autonomous Execution:** The skill file instructs the agent to execute the packaged CLI tool:
-   ```bash
-   joomla-rag search "How to create an MVC component in Joomla 5"
-   ```
-4. **Silent and Offline Extraction:** The local vector database (ChromaDB) is queried and instantly returns the most relevant snippets from the official Joomla documentation, without requiring external API calls and without polluting the terminal with unnecessary logs.
-5. **Deep Dive (Optional):** The search response includes the absolute paths of the Markdown files. If the agent needs more context, it can use reading tools to consult the full document before generating the final code.
+1. **Environment Introspection (`inspect`):** Quickly understand the local Joomla project by parsing `configuration.php` and scanning directories for installed extensions.
+
+2. **Content Management via REST API (`api articles/categories/menus`):** Manage Joomla content with full CRUD operations (list, get, create, delete) and filters using Joomla's Web Services API.
+
+3. **Intelligent Scaffolding (`scaffold component/module`):** Generate boilerplate code and folder structures for extensions instantly, supporting Components and Modules.
+
+4. **Extension Validation (`validate`):** Ensure generated extensions are installable and follow Joomla standards by checking manifests and file structures.
+
+5. **Smart Querying (RAG via `search`):** Intelligent documentation search using a local vector database for offline, instant access to Joomla docs.
+
+The agent can autonomously execute these tools, such as inspecting the environment, scaffolding a new component, validating it, and querying documentation as needed, all without manual intervention.

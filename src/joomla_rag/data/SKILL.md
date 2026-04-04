@@ -46,6 +46,18 @@ After successful login, you can manage articles using these commands:
 - `joomla-rag api articles create --title "My Article" --text "<p>Content</p>"`
 - `joomla-rag api articles delete --id <id>`
 
+You can also manage categories:
+- `joomla-rag api categories list [--search "keyword"] [--state <0|1|-2>] [--limit 5]`
+- `joomla-rag api categories get --id <id>`
+- `joomla-rag api categories create --title "My Category"`
+- `joomla-rag api categories delete --id <id>`
+
+And manage menus:
+- `joomla-rag api menus list [--menutype <menutype>] [--state <0|1|-2>] [--limit 5]`
+- `joomla-rag api menus get --id <id>`
+- `joomla-rag api menus create --title "My Menu Item" --menutype <menutype>`
+- `joomla-rag api menus delete --id <id>`
+
 **IMPORTANT:** Always use `--search`, `--category`, or `--limit` when listing articles to find what you need without wasting context tokens on hundreds of results. The output is a token-efficient compact table.
 
 ### 4. Scaffolding Extensions (`joomla-rag scaffold`)

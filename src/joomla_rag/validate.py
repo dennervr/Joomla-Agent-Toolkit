@@ -2,20 +2,21 @@ import os
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-def validate_extension(path: str):
+def validate_extension(path: str) -> bool:
     """
     Validates a Joomla extension by checking the XML manifest and file references.
+    Returns True if valid, False otherwise.
     """
     path = Path(path)
     if not path.exists() or not path.is_dir():
         print(f"Error: Path {path} does not exist or is not a directory.")
-        return
+        return False
 
     # Find XML manifest files
     xml_files = list(path.glob("*.xml"))
     if not xml_files:
         print("Error: No XML manifest file found in the extension directory.")
-        return
+        return False
 
     # Assume the first XML file is the manifest (typically there's only one)
     manifest_file = xml_files[0]
@@ -26,12 +27,12 @@ def validate_extension(path: str):
         root = tree.getroot()
     except ET.ParseError as e:
         print(f"Error parsing XML: {e}")
-        return
+        return False
 
     # Check for <extension> tag
     if root.tag != "extension":
         print("Error: Root tag is not 'extension'.")
-        return
+        return False
 
     # Required tags
     required_tags = ["name", "version", "creationDate", "author"]
@@ -65,5 +66,7 @@ def validate_extension(path: str):
     # Summary
     if not missing_tags and not missing_files:
         print("Validation successful: Extension is ready for installation.")
+        return True
     else:
         print("Validation failed: Fix the issues above before installing.")
+        return False
