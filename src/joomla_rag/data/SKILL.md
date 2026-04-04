@@ -74,11 +74,13 @@ This ensures all required tags are present and all files referenced in `<files>`
 ### 6. Bridge Commands (`joomla-rag bridge`)
 These commands provide a native execution bridge for running PHP code and commands within the Joomla context.
 
-- `joomla-rag bridge run --code "echo 'Hello World';"`: Execute arbitrary PHP code in the Joomla environment.
-- `joomla-rag bridge trace --route "com_users&view=login"`: Trace the Joomla route to see how it resolves to components, views, etc.
-- `joomla-rag bridge auth`: Retrieve the API token for authentication.
+- `joomla-rag bridge run "echo 'Hello World';" --path <joomla_root>`: Execute arbitrary PHP code in the Joomla environment.
+- `joomla-rag bridge trace "com_users&view=login" --path <joomla_root>`: Trace the Joomla route to see how it resolves to components, views, etc.
+- `joomla-rag bridge auth --path <joomla_root>`: Retrieve the API token for authentication.
 
-If the user's Joomla environment is running in Docker (e.g., a `docker-compose.yml` is present) and the local machine does not have PHP installed, the `bridge` commands will fail unless the `--exec` flag is provided. Proactively use bash to inspect `docker-compose.yml` or run `docker ps` to find the correct container/service name, and then append `--exec "docker exec -i <container_name>"` (or `--exec "docker compose exec -T <service>"`) to the `joomla-rag bridge ...` commands.
+If the user's Joomla environment is running in Docker (e.g., a `docker-compose.yml` is present) and the local machine does not have PHP installed, the `bridge` commands will fail unless the `--exec` flag is provided. Proactively use bash to inspect `docker-compose.yml` or run `docker ps` to find the correct container/service name, and then append `--exec "docker exec -i <container>" --cwd /var/www/html` (or `--exec "docker compose exec -T <service>" --cwd /var/www/html`) to the `joomla-rag bridge ...` commands.
+
+If the PHP script fails with empty stderr, use `--verbose` to see the exact command.
 
 ### Instructions for the LLM:
 1. When receiving the text response from the script, analyze from which `FILE` (`Source`) and `TOPIC` the answer came from.

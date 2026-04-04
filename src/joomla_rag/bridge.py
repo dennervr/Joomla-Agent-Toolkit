@@ -10,11 +10,18 @@ from typing import Dict, Any
 class AgentBridge:
     """Bridge for executing PHP code and commands within Joomla context."""
 
-    def __init__(self, joomla_path: Path, exec_prefix: str = None, cwd: str = None):
+    def __init__(
+        self,
+        joomla_path: Path,
+        exec_prefix: str = None,
+        cwd: str = None,
+        verbose: bool = False,
+    ):
         self.joomla_path = joomla_path
         self.php_script_path = joomla_path / "cli" / "agent_cli.php"
         self.exec_prefix = exec_prefix
         self.cwd = cwd
+        self.verbose = verbose
 
         if self.exec_prefix is None and shutil.which("php") is None:
             compose_files = [
@@ -50,6 +57,11 @@ class AgentBridge:
         php_content = self._get_php_script_content()
         self.php_script_path.write_text(php_content)
 
+        if self.verbose:
+            print(
+                f"deploy_php_script() writes to {self.php_script_path}", file=sys.stderr
+            )
+
     def run_command(self, command: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         """Run a command via the PHP script."""
         if not self.php_script_path.exists():
@@ -71,13 +83,36 @@ class AgentBridge:
             cmd = ["php", str(self.php_script_path), f"agent:{command}"]
             cwd_arg = self.joomla_path
 
+        if self.verbose:
+            print(f"Resolved joomla_path: {self.joomla_path}", file=sys.stderr)
+            print(f"exec_prefix used: {self.exec_prefix is not None}", file=sys.stderr)
+            print(f"Command to execute: {shlex.join(cmd)}", file=sys.stderr)
+
         # Run PHP script with JSON payload via stdin
         result = subprocess.run(
             cmd, input=json_payload, text=True, capture_output=True, cwd=cwd_arg
         )
 
         if result.returncode != 0:
-            raise RuntimeError(f"PHP script failed: {result.stderr}")
+            # Handle non-utf8 bytes by decoding with errors='replace'
+            stderr_str = (
+                result.stderr.decode("utf-8", errors="replace")
+                if isinstance(result.stderr, bytes)
+                else result.stderr
+            )
+            stdout_str = (
+                result.stdout.decode("utf-8", errors="replace")
+                if isinstance(result.stdout, bytes)
+                else result.stdout
+            )
+            cmd_str = shlex.join(cmd)
+            error_msg = f"PHP script failed with returncode {result.returncode}"
+            if stderr_str:
+                error_msg += f"\nstderr: {stderr_str}"
+            if stdout_str:
+                error_msg += f"\nstdout: {stdout_str}"
+            error_msg += f"\nCommand executed: {cmd_str}"
+            raise RuntimeError(error_msg)
 
         try:
             return json.loads(result.stdout.strip())

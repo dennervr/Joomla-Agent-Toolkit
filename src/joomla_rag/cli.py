@@ -198,6 +198,9 @@ def main():
     bridge_parser.add_argument(
         "--cwd", type=str, help="Working directory for execution"
     )
+    bridge_parser.add_argument(
+        "--verbose", action="store_true", help="Enable verbose output"
+    )
     bridge_subparsers = bridge_parser.add_subparsers(dest="bridge_command")
 
     # Run subcommand
@@ -271,6 +274,7 @@ def main():
             joomla_path,
             exec_prefix=getattr(args, "exec", None),
             cwd=getattr(args, "cwd", None),
+            verbose=getattr(args, "verbose", False),
         )
         agent_bridge.deploy_php_script()
         if args.bridge_command == "run":

@@ -24,13 +24,13 @@ def mock_joomla_path(temp_dir):
 
 
 @patch("shutil.which")
-def test_agent_bridge_init(mock_which, mock_joomla_path):
+def test_deploy_php_script_verbose(mock_which, mock_joomla_path, capsys):
     mock_which.return_value = "/usr/bin/php"
-    bridge = AgentBridge(mock_joomla_path)
-    assert bridge.joomla_path == mock_joomla_path
-    assert bridge.php_script_path == mock_joomla_path / "cli" / "agent_cli.php"
-    assert bridge.exec_prefix is None
-    assert bridge.cwd is None
+    bridge = AgentBridge(mock_joomla_path, verbose=True)
+    bridge.deploy_php_script()
+
+    captured = capsys.readouterr()
+    assert f"deploy_php_script() writes to {bridge.php_script_path}" in captured.err
 
 
 @patch("shutil.which")
@@ -116,12 +116,18 @@ def test_run_command_failure(mock_which, mock_subprocess_run, mock_joomla_path):
 
     mock_process = MagicMock()
     mock_process.returncode = 1
-    mock_process.stdout = ""
+    mock_process.stdout = "some output"
     mock_process.stderr = "Error: Invalid command"
     mock_subprocess_run.return_value = mock_process
 
-    with pytest.raises(RuntimeError, match="PHP script failed"):
+    with pytest.raises(RuntimeError) as exc_info:
         bridge.run_command("invalid", {})
+
+    error_msg = str(exc_info.value)
+    assert "PHP script failed with returncode 1" in error_msg
+    assert "stderr: Error: Invalid command" in error_msg
+    assert "stdout: some output" in error_msg
+    assert "Command executed:" in error_msg
 
 
 @patch("subprocess.run")
@@ -160,16 +166,26 @@ def test_trace_route(mock_which, mock_subprocess_run, mock_joomla_path):
 
 @patch("subprocess.run")
 @patch("shutil.which")
-def test_get_api_token(mock_which, mock_subprocess_run, mock_joomla_path):
+def test_run_command_verbose(mock_which, mock_subprocess_run, mock_joomla_path, capsys):
     mock_which.return_value = "/usr/bin/php"
-    bridge = AgentBridge(mock_joomla_path)
+    bridge = AgentBridge(mock_joomla_path, verbose=True)
     bridge.deploy_php_script()
 
     mock_process = MagicMock()
     mock_process.returncode = 0
-    mock_process.stdout = '{"token": "abc123"}'
+    mock_process.stdout = '{"result": "success"}'
     mock_process.stderr = ""
     mock_subprocess_run.return_value = mock_process
 
-    result = bridge.get_api_token()
-    assert result["token"] == "abc123"
+    result = bridge.run_command("run", {"code": "echo 'test';"})
+    assert result == {"result": "success"}
+
+    captured = capsys.readouterr()
+    assert f"Resolved joomla_path: {mock_joomla_path}" in captured.err
+    assert "exec_prefix used: False" in captured.err
+    assert "Command to execute:" in captured.err
+    assert (
+        "php" in captured.err
+        and "agent_cli.php" in captured.err
+        and "agent:run" in captured.err
+    )
